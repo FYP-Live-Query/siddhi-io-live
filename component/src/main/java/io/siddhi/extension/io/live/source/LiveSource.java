@@ -19,13 +19,14 @@ import io.siddhi.core.util.snapshot.state.State;
 import io.siddhi.core.util.snapshot.state.StateFactory;
 import io.siddhi.core.util.transport.OptionHolder;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+
 
 import javax.security.auth.login.CredentialException;
 
@@ -111,7 +112,8 @@ import javax.security.auth.login.CredentialException;
         },
         examples = {
                 @Example(
-                        syntax = "@source(type = 'live', sql.query='Select * from table', host.name='api-varden-example'," +
+                        syntax = "@source(type = 'live', sql.query='Select * from table'," +
+                                "\nhost.name='api-varden-example'," +
                         "\napi.key = 'apikey-xxxxxxxxx', " +
                         "\n@map(type='keyvalue'), @attributes(id = 'id', name = 'name'))" +
                         "\ndefine stream inputStream (id int, name string)",
@@ -187,7 +189,7 @@ public class LiveSource extends Source {
      * @throws ConnectionUnavailableException if it cannot connect to the source backend immediately.
      */
     @Override
-    public void connect(ConnectionCallback connectionCallback,State state) throws ConnectionUnavailableException {
+    public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
         C8DB db;
         try {
             db = new C8DB.Builder()
@@ -218,7 +220,6 @@ public class LiveSource extends Source {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-//        System.out.println(r.toString());
         logger.info("Event " + r.toString());
         sourceEventListener.onEvent(r.toString(), requestedTransportPropertyNames);
     

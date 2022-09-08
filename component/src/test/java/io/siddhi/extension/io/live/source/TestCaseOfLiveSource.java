@@ -16,9 +16,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -51,8 +49,11 @@ public class TestCaseOfLiveSource {
         siddhiManager.setPersistenceStore(persistenceStore);
         siddhiManager.setExtension("xml-input-mapper", XmlSourceMapper.class);
         String inStreamDefinition = "@App:name('TestSiddhiApp')" +
-                "@source(type='live',  sql.query='select count from network_traffic', host.name='api-varden-4f0f3c4f.paas.macrometa.io'," +
-                "api.key = 'madu140_gmail.com.AccessPortal.2PL8EeyIAMn2sx7YHKWMM58tmJLES4NyIWq6Cnsj0BTMjygJyF3b14zb2sidcauXccccb8'," +
+                "@source(type='live'," +
+                "sql.query='select count from network_traffic'," +
+                "host.name='api-varden-4f0f3c4f.paas.macrometa.io'," +
+                "api.key = 'madu140_gmail.com." +
+                "AccessPortal.2PL8EeyIAMn2sx7YHKWMM58tmJLES4NyIWq6Cnsj0BTMjygJyF3b14zb2sidcauXccccb8'," +
                 " @map(type='keyvalue'), @attributes(id = 'id', name = 'name'))," +
                 "define stream inputStream (count int)";
         String query = ("@info(name = 'query') "
