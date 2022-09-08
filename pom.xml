@@ -119,16 +119,4 @@
         <siddhi.map.xml.version>5.0.2</siddhi.map.xml.version>
         <jacoco.plugin.version>0.7.9</jacoco.plugin.version>
     </properties>
-
-
-    <dependencies>
-    
-
-        <dependency>
-            <groupId>com.arangodb</groupId>
-            <artifactId>arangodb-java-driver</artifactId>
-            <version>6.18.0</version>
-        </dependency>
-
-    </dependencies>
 </project>

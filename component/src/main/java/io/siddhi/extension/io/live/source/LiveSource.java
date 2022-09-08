@@ -1,5 +1,10 @@
 package io.siddhi.extension.io.live.source;
 
+import com.arangodb.velocypack.VPackSlice;
+import com.c8db.C8DB;
+import com.c8db.http.HTTPEndPoint;
+import com.c8db.http.HTTPMethod;
+import com.c8db.http.HTTPRequest;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
 import io.siddhi.annotation.Parameter;
@@ -19,14 +24,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.arangodb.ArangoDBException;
-import com.arangodb.DbName;
-import com.arangodb.internal.http.HttpConnection;
-import com.arangodb.internal.net.HostDescription;
-import com.arangodb.mapping.ArangoJack;
-import com.arangodb.velocystream.Request;
-import com.arangodb.velocystream.RequestType;
-import com.arangodb.velocystream.Response;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import javax.security.auth.login.CredentialException;
 
 /**
  * This is a sample class-level comment, explaining what the extension class does.
@@ -90,15 +91,28 @@ import com.arangodb.velocystream.Response;
                         type = {DataType.INT, DataType.BOOL, DataType.STRING, DataType.DOUBLE, }),
                         type = {DataType.INT, DataType.BOOL, DataType.STRING, DataType.DOUBLE, }),*/
                 @Parameter(
-                        name = "sql",
+                        name = "sql.query",
                         description = "The SQL select query",
                         type = DataType.STRING,
                         dynamic = true
-                )
+                ),
+                @Parameter(
+                        name = "host.name",
+                        description = "The Hostname",
+                        type = DataType.STRING,
+                        dynamic = true
+                ),
+                @Parameter(
+                        name = "api.key",
+                        description = "The api Key",
+                        type = DataType.STRING,
+                        dynamic = true
+                )               
         },
         examples = {
                 @Example(
-                        syntax = "@source(type = 'live', sql='Select * from table', " +
+                        syntax = "@source(type = 'live', sql.query='Select * from table', host.name='api-varden-example'," +
+                        "\napi.key = 'apikey-xxxxxxxxx', " +
                         "\n@map(type='keyvalue'), @attributes(id = 'id', name = 'name'))" +
                         "\ndefine stream inputStream (id int, name string)",
                         description = "In this example, the Live source executes the select query. The" +
@@ -108,7 +122,13 @@ import com.arangodb.velocystream.Response;
 )
 // for more information refer https://siddhi.io/en/v5.0/docs/query-guide/#source
 public class LiveSource extends Source {
+    private static final Logger logger = LogManager.getLogger(LiveSource.class);
     private String siddhiAppName;
+    private String selectQuery;
+    private String hostName;
+    private String apiKey;
+    protected SourceEventListener sourceEventListener;
+    protected String[] requestedTransportPropertyNames;
     /**
      * The initialization method for {@link Source}, will be called before other methods. It used to validate
      * all configurations and to get initial values.
@@ -127,11 +147,13 @@ public class LiveSource extends Source {
         String[] requestedTransportPropertyNames, ConfigReader configReader,
         SiddhiAppContext siddhiAppContext) {
             String streamName = sourceEventListener.getStreamDefinition().getId();
-            String selectQuery;
             Map<String, String> deploymentConfigMap = new HashMap();
             deploymentConfigMap.putAll(configReader.getAllConfigs());
             siddhiAppName = siddhiAppContext.getName();
-            selectQuery = deploymentConfigMap.get(LiveSourceConstants.SQLQUERY);
+            this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
+            this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
+            this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
+            this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
         return null;
     }
 
@@ -165,37 +187,41 @@ public class LiveSource extends Source {
      * @throws ConnectionUnavailableException if it cannot connect to the source backend immediately.
      */
     @Override
-    public void connect(ConnectionCallback connectionCallback, State state) throws ConnectionUnavailableException {
-        HttpConnection arangoHttpConnection = new HttpConnection.Builder()
-                .useSsl(true)
-                .host(new HostDescription("api-varden-4f0f3c4f.paas.macrometa.io", 443))
-                .serializationUtil(new ArangoJack())
-                .build();
-        arangoHttpConnection.setJwt("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjEuNjYxOTI2NjY5MjU4OTYxNWUrNiwiZXhwIjoxNjYxOTY5ODY5LCJpc3MiOiJtYWNyb21ldGEiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJyb290Iiwic3ViIjoibWFkdTE0MF9nbWFpbC5jb20iLCJ0ZW5hbnQiOiJtYWR1MTQwX2dtYWlsLmNvbSJ9.dVQccQomvpT2VktQJtvvuLKrdeART38Ek4Y6V5tzrB4=");
-        System.out.println(arangoHttpConnection.toString());
-        Request req = new Request(DbName.SYSTEM, RequestType.GET,"/_db/_system/_api/database");
-
-        while(true) {
-            Response res;
-            try {
-                res = arangoHttpConnection.execute(req);
-                System.out.println(res.getBody().toString());
-
-            } catch (ArangoDBException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            } catch (IOException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }
-
-            try {
-//                res.wait();
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+    public void connect(ConnectionCallback connectionCallback,State state) throws ConnectionUnavailableException {
+        C8DB db;
+        try {
+            db = new C8DB.Builder()
+                    .hostName(hostName)
+                    .port(443)
+                    .apiKey(apiKey)
+                    .build();
+        } catch (CredentialException e) {
+            throw new RuntimeException(e);
         }
+
+        HTTPEndPoint endPoint = new HTTPEndPoint("/_api/collection/network_traffic/count");
+
+       HTTPRequest request = new HTTPRequest.Builder()
+               .RequestType(HTTPMethod.GET)
+               .EndPoint(endPoint)
+               .build();
+
+        try {
+            VPackSlice responseBody = db.execute(request);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        VPackSlice r;
+        try {
+            r = db.execute(request);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+//        System.out.println(r.toString());
+        logger.info("Event " + r.toString());
+        sourceEventListener.onEvent(r.toString(), requestedTransportPropertyNames);
+    
     }
 
     /**
@@ -229,5 +255,6 @@ public class LiveSource extends Source {
     public void destroy() {
 
     }
+
 
 }
