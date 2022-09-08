@@ -93,21 +93,18 @@ import javax.security.auth.login.CredentialException;
                 @Parameter(
                         name = "sql.query",
                         description = "The SQL select query",
-                        type = DataType.STRING,
-                        dynamic = true
+                        type = DataType.STRING
                 ),
                 @Parameter(
                         name = "host.name",
                         description = "The Hostname",
-                        type = DataType.STRING,
-                        dynamic = true
+                        type = DataType.STRING
                 ),
                 @Parameter(
                         name = "api.key",
                         description = "The api Key",
-                        type = DataType.STRING,
-                        dynamic = true
-                )               
+                        type = DataType.STRING
+                )
         },
         examples = {
                 @Example(

@@ -52,13 +52,12 @@ public class TestCaseOfLiveSource {
         siddhiManager.setExtension("xml-input-mapper", XmlSourceMapper.class);
         String inStreamDefinition = "@App:name('TestSiddhiApp')" +
                 "@source(type='live',  sql.query='select count from network_traffic', host.name='api-varden-4f0f3c4f.paas.macrometa.io'," +
-                "api.key = 'madu140_gmail.com.AccessPortal.2PL8EeyIAMn2sx7YHKWMM58tmJLES4NyIWq6Cnsj0BTMjygJyF3b14zb2sidcauXccccb8'," +
-                " @map(type='keyvalue'), @attributes(id = 'id', name = 'name'))," +
-                "define stream inputStream (count int)";
+                "api.key = 'madu140_gmail.com.AccessPortal.2PL8EeyIAMn2sx7YHKWMM58tmJLES4NyIWq6Cnsj0BTMjygJyF3b14zb2sidcauXccccb8' ) " +
+                "define stream inputStream (count int); ";
         String query = ("@info(name = 'query') "
                 + "from inputStream "
                 + "select *  "
-                + "insert into outputStream;"
+                + "insert into outputStream; "
         );
         SiddhiAppRuntime siddhiAppRuntime = siddhiManager
                 .createSiddhiAppRuntime(inStreamDefinition + query);
