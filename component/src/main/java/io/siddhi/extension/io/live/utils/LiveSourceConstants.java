@@ -1,5 +1,8 @@
 package io.siddhi.extension.io.live.utils;
 
+/**
+ * constants.
+ */
 public class LiveSourceConstants {
     public static final String SQLQUERY = "sql.query";
     public static final String HOSTNAME = "host.name";

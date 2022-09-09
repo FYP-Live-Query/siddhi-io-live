@@ -5,21 +5,15 @@ import io.siddhi.core.SiddhiManager;
 import io.siddhi.core.event.Event;
 import io.siddhi.core.query.output.callback.QueryCallback;
 import io.siddhi.core.util.EventPrinter;
-import io.siddhi.core.util.SiddhiTestHelper;
 import io.siddhi.core.util.persistence.InMemoryPersistenceStore;
 import io.siddhi.core.util.persistence.PersistenceStore;
-import io.siddhi.extension.map.xml.sourcemapper.XmlSourceMapper;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -47,13 +41,17 @@ public class TestCaseOfLiveSource {
         PersistenceStore persistenceStore = new InMemoryPersistenceStore();
         SiddhiManager siddhiManager = new SiddhiManager();
         siddhiManager.setPersistenceStore(persistenceStore);
-        siddhiManager.setExtension("xml-input-mapper", XmlSourceMapper.class);
         String inStreamDefinition0 = "@App:name('TestSiddhiApp0')" +
-                "@source(type='live',sql.query='FOR t IN traffics limit 5 RETURN t', host.name='api-varden-4f0f3c4f.paas.macrometa.io'," +
-                "api.key = 'madu140_gmail.com.AccessPortal.2PL8EeyIAMn2sx7YHKWMM58tmJLES4NyIWq6Cnsj0BTMjygJyF3b14zb2sidcauXccccb8', " +
+                "@source(type='live',sql.query='FOR t IN traffics limit 5 RETURN t', " +
+                "host.name='api-varden-4f0f3c4f.paas.macrometa.io'," +
+                "api.key = 'madu140_gmail.com." +
+                "AccessPortal.2PL8EeyIAMn2sx7YHKWMM58tmJLES4NyIWq6Cnsj0BTMjygJyF3b14zb2sidcauXccccb8', " +
                 " @map(type='json', fail.on.missing.attribute='false') )" +
                 "define stream inputStream (id String,key String,revision String,properties String);";
-        String query0 = ("@info(name = 'query0') "
+
+        String query0 = ("@sink(type = 'log')" +
+                "define stream OutputStream (id String,key String,revision String,properties String);" +
+                "@info(name = 'query0') "
                 + "from inputStream "
                 + "select * "
                 + "insert into outputStream;"
@@ -67,7 +65,6 @@ public class TestCaseOfLiveSource {
                 EventPrinter.print(timeStamp, inEvents, removeEvents);
                 for (Event event : inEvents) {
                     eventCount.incrementAndGet();
-//                    receivedEventNameList.add(event.getData(0).toString());
                 }
             }
         });
