@@ -1,10 +1,20 @@
 package io.siddhi.extension.io.live.source;
 
 import com.arangodb.velocypack.VPackSlice;
+//import com.c8db.C8Cursor;
+//import com.c8db.C8DB;
+import com.c8db.C8Cursor;
 import com.c8db.C8DB;
-import com.c8db.http.HTTPEndPoint;
-import com.c8db.http.HTTPMethod;
-import com.c8db.http.HTTPRequest;
+import com.c8db.entity.BaseDocument;
+import com.c8db.util.MapBuilder;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
 import io.siddhi.annotation.Parameter;
@@ -24,6 +34,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.minidev.json.JSONObject;
+import org.apache.http.client.HttpClient;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -147,6 +159,7 @@ public class LiveSource extends Source {
             Map<String, String> deploymentConfigMap = new HashMap();
             deploymentConfigMap.putAll(configReader.getAllConfigs());
             siddhiAppName = siddhiAppContext.getName();
+            this.sourceEventListener=sourceEventListener;
             this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
             this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
@@ -185,40 +198,26 @@ public class LiveSource extends Source {
      */
     @Override
     public void connect(ConnectionCallback connectionCallback,State state) throws ConnectionUnavailableException {
-        C8DB db;
-        try {
-            db = new C8DB.Builder()
-                    .hostName(hostName)
-                    .port(443)
-                    .apiKey(apiKey)
-                    .build();
-        } catch (CredentialException e) {
-            throw new RuntimeException(e);
+
+        final C8DB c8db = new C8DB.Builder()
+                .useSsl(true)
+                .host(hostName,443)
+                .apiKey(apiKey)
+                .user("root")
+                .useSsl(true)
+                .build();
+        System.out.println(c8db.toString());
+
+//        final Map<String, Object> bindVars = new MapBuilder().put("name", "Homer").get();
+        final C8Cursor<BaseDocument> cursor = c8db.db(null, "_system").query(selectQuery, null,
+                null, BaseDocument.class);
+        for (; cursor.hasNext();) {
+            Gson gson = new Gson();
+            String json = gson.toJson(cursor.next());
+
+            sourceEventListener.onEvent(json,null);
+
         }
-
-        HTTPEndPoint endPoint = new HTTPEndPoint("/_api/collection/network_traffic/count");
-
-       HTTPRequest request = new HTTPRequest.Builder()
-               .RequestType(HTTPMethod.GET)
-               .EndPoint(endPoint)
-               .build();
-
-        try {
-            VPackSlice responseBody = db.execute(request);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        VPackSlice r;
-        try {
-            r = db.execute(request);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-//        System.out.println(r.toString());
-        logger.info("Event " + r.toString());
-        sourceEventListener.onEvent(r.toString(), requestedTransportPropertyNames);
-    
     }
 
     /**
