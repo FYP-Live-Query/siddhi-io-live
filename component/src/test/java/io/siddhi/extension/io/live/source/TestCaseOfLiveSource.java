@@ -24,7 +24,6 @@ public class TestCaseOfLiveSource {
     private AtomicInteger eventCount = new AtomicInteger(0);
     private int waitTime = 50;
     private int timeout = 30000;
-
     @BeforeMethod
     public void init() {
         eventCount.set(0);
@@ -54,10 +53,9 @@ public class TestCaseOfLiveSource {
                 "@info(name = 'query0') "
                 + "from inputStream "
                 + "select * "
-                + "insert into outputStream;"
-        );
-        SiddhiAppRuntime siddhiAppRuntime0 = siddhiManager
-                .createSiddhiAppRuntime(inStreamDefinition0 + query0);
+                + "insert into outputStream;");
+
+        SiddhiAppRuntime siddhiAppRuntime0 = siddhiManager.createSiddhiAppRuntime(inStreamDefinition0 + query0);
 
         siddhiAppRuntime0.addCallback("query0", new QueryCallback() {
             @Override
