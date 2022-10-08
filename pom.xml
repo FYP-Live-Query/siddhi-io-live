@@ -119,4 +119,11 @@
         <siddhi.map.xml.version>5.0.2</siddhi.map.xml.version>
         <jacoco.plugin.version>0.7.9</jacoco.plugin.version>
     </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.metrics</groupId>
+            <artifactId>org.wso2.carbon.metrics.core</artifactId>
+            <version>2.3.14</version>
+        </dependency>
+    </dependencies>
 </project>

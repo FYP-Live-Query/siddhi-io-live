@@ -18,6 +18,12 @@
                 <name></name>
             <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
         </mirror>
+        <mirror>
+            <id>maven</id>
+            <mirrorOf>maven</mirrorOf>
+            <name></name>
+            <url>http://repo1.maven.org/maven2</url>
+        </mirror>
     </mirrors>
 </settings>
 
