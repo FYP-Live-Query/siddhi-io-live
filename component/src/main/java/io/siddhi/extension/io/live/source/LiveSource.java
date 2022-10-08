@@ -1,10 +1,12 @@
 package io.siddhi.extension.io.live.source;
 
-import com.arangodb.velocypack.VPackSlice;
+
+import com.c8db.C8Cursor;
 import com.c8db.C8DB;
-import com.c8db.http.HTTPEndPoint;
-import com.c8db.http.HTTPMethod;
-import com.c8db.http.HTTPRequest;
+import com.c8db.entity.BaseDocument;
+
+import com.google.gson.Gson;
+
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
 import io.siddhi.annotation.Parameter;
@@ -18,17 +20,19 @@ import io.siddhi.core.util.config.ConfigReader;
 import io.siddhi.core.util.snapshot.state.State;
 import io.siddhi.core.util.snapshot.state.StateFactory;
 import io.siddhi.core.util.transport.OptionHolder;
+import io.siddhi.extension.io.live.metrics.SourceMetrics;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.wso2.carbon.si.metrics.core.internal.MetricsDataHolder;
 
-import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
 
 
 
-import javax.security.auth.login.CredentialException;
+
 
 /**
  * This is a sample class-level comment, explaining what the extension class does.
@@ -94,25 +98,22 @@ import javax.security.auth.login.CredentialException;
                 @Parameter(
                         name = "sql.query",
                         description = "The SQL select query",
-                        type = DataType.STRING,
-                        dynamic = true
+                        type = DataType.STRING
                 ),
                 @Parameter(
                         name = "host.name",
                         description = "The Hostname",
-                        type = DataType.STRING,
-                        dynamic = true
+                        type = DataType.STRING
                 ),
                 @Parameter(
                         name = "api.key",
                         description = "The api Key",
-                        type = DataType.STRING,
-                        dynamic = true
-                )               
+                        type = DataType.STRING
+                )
         },
         examples = {
                 @Example(
-                        syntax = "@source(type = 'live', sql.query='Select * from table'," +
+                        syntax = "@source(type = 'live', sql.query='Select * from table', " +
                                 "\nhost.name='api-varden-example'," +
                         "\napi.key = 'apikey-xxxxxxxxx', " +
                         "\n@map(type='keyvalue'), @attributes(id = 'id', name = 'name'))" +
@@ -126,6 +127,7 @@ import javax.security.auth.login.CredentialException;
 public class LiveSource extends Source {
     private static final Logger logger = LogManager.getLogger(LiveSource.class);
     private String siddhiAppName;
+    private SourceMetrics metrics;
     private String selectQuery;
     private String hostName;
     private String apiKey;
@@ -148,14 +150,15 @@ public class LiveSource extends Source {
     public StateFactory init(SourceEventListener sourceEventListener, OptionHolder optionHolder,
         String[] requestedTransportPropertyNames, ConfigReader configReader,
         SiddhiAppContext siddhiAppContext) {
-            String streamName = sourceEventListener.getStreamDefinition().getId();
             Map<String, String> deploymentConfigMap = new HashMap();
             deploymentConfigMap.putAll(configReader.getAllConfigs());
-            siddhiAppName = siddhiAppContext.getName();
+            siddhiAppName  =  siddhiAppContext.getName();
+            this.sourceEventListener = sourceEventListener;
             this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
             this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
+            initMetrics(siddhiAppName);
         return null;
     }
 
@@ -190,39 +193,31 @@ public class LiveSource extends Source {
      */
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
-        C8DB db;
-        try {
-            db = new C8DB.Builder()
-                    .hostName(hostName)
-                    .port(443)
-                    .apiKey(apiKey)
-                    .build();
-        } catch (CredentialException e) {
-            throw new RuntimeException(e);
+
+        final C8DB c8db = new C8DB.Builder()
+                .useSsl(true)
+                .host(hostName , 443)
+                .apiKey(apiKey)
+                .user("root")
+                .useSsl(true)
+                .build();
+
+
+//        final Map<String, Object> bindVars = new MapBuilder().put("name", "Homer").get();
+        final C8Cursor<BaseDocument> cursor = c8db.db(null , "_system").query(selectQuery, null,
+                null, BaseDocument.class);
+
+
+        for (; cursor.hasNext();) {
+            Gson gson = new Gson();
+            String json = gson.toJson(cursor.next());
+//            System.out.println(json);
+            sourceEventListener.onEvent(json , null);
+
         }
-
-        HTTPEndPoint endPoint = new HTTPEndPoint("/_api/collection/network_traffic/count");
-
-       HTTPRequest request = new HTTPRequest.Builder()
-               .RequestType(HTTPMethod.GET)
-               .EndPoint(endPoint)
-               .build();
-
-        try {
-            VPackSlice responseBody = db.execute(request);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (metrics != null) {
+            metrics.getTotalReadsMetric().inc();
         }
-
-        VPackSlice r;
-        try {
-            r = db.execute(request);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        logger.info("Event " + r.toString());
-        sourceEventListener.onEvent(r.toString(), requestedTransportPropertyNames);
-    
     }
 
     /**
@@ -255,6 +250,24 @@ public class LiveSource extends Source {
     @Override
     public void destroy() {
 
+    }
+
+    /**
+     * Initialize metrics.
+     */
+    protected void initMetrics(String appName) {
+        if (MetricsDataHolder.getInstance().getMetricService() != null
+                && MetricsDataHolder.getInstance().getMetricManagementService().isEnabled()) {
+            try {
+                if (MetricsDataHolder.getInstance().getMetricManagementService()
+                        .isReporterRunning(LiveSourceConstants.PROMETHEUS_REPORTER_NAME)) {
+                    metrics = new SourceMetrics(appName);
+                }
+            } catch (IllegalArgumentException e) {
+                logger.debug("Prometheus reporter is not running. Hence live source metrics will not be initialized for "
+                        + appName);
+            }
+        }
     }
 
 
