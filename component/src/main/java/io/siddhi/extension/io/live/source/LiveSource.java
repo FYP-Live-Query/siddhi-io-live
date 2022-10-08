@@ -7,6 +7,7 @@ import com.c8db.entity.BaseDocument;
 
 import com.google.gson.Gson;
 
+import org.apache.pulsar.client.api.*;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
 import io.siddhi.annotation.Parameter;
@@ -24,15 +25,10 @@ import io.siddhi.extension.io.live.metrics.SourceMetrics;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.apache.pulsar.client.api.*;
 import org.wso2.carbon.si.metrics.core.internal.MetricsDataHolder;
 
-import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
-
-
-
 
 
 /**
@@ -211,7 +207,6 @@ public class LiveSource extends Source {
             Gson gson = new Gson();
             String json = gson.toJson(cursor.next());
             sourceEventListener.onEvent(json , null);
-
         }
 
         if (metrics != null) {
