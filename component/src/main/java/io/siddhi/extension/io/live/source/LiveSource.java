@@ -7,6 +7,7 @@ import com.c8db.entity.BaseDocument;
 
 import com.google.gson.Gson;
 
+import org.apache.pulsar.client.api.*;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
 import io.siddhi.annotation.Parameter;
@@ -26,12 +27,8 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.si.metrics.core.internal.MetricsDataHolder;
 
-import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
-
-
-
 
 
 /**
@@ -202,8 +199,6 @@ public class LiveSource extends Source {
                 .useSsl(true)
                 .build();
 
-
-//        final Map<String, Object> bindVars = new MapBuilder().put("name", "Homer").get();
         final C8Cursor<BaseDocument> cursor = c8db.db(null , "_system").query(selectQuery, null,
                 null, BaseDocument.class);
 
@@ -211,13 +206,74 @@ public class LiveSource extends Source {
         for (; cursor.hasNext();) {
             Gson gson = new Gson();
             String json = gson.toJson(cursor.next());
-//            System.out.println(json);
             sourceEventListener.onEvent(json , null);
-
         }
+
         if (metrics != null) {
             metrics.getTotalReadsMetric().inc();
         }
+
+        PulsarClient client = null;
+
+        try {
+            client = PulsarClient.builder()
+                    .serviceUrl("pulsar://localhost:6650") // TODO : need c8db stream
+                    .build();
+        } catch (PulsarClientException e) {
+            e.printStackTrace();
+        }
+
+        Consumer consumer =
+                null;
+        try {
+            consumer = client
+            .newConsumer()
+            .topic("my-topic")                          // TODO : topic name should be collection name
+            .subscriptionName("my-subscription")        // TODO : should be an unique name
+            .subscribe();
+        } catch (PulsarClientException e) {
+            e.printStackTrace();
+        }
+
+
+        Consumer finalConsumer = consumer;
+        Runnable consumerThread =
+                () -> {
+                        int i = 0;
+                        while (true) {
+
+                            // Wait for a message
+                            Message msg = null;
+                            try {
+                                msg = finalConsumer.receive();
+                            } catch (PulsarClientException e) {
+                                e.printStackTrace();
+                            }
+
+                            try {
+                                // Do something with the message
+                                assert msg != null;
+                                sourceEventListener.onEvent(msg.getData() , null);
+
+                                // Acknowledge the message so that it can be deleted by the message broker
+                                finalConsumer.acknowledge(msg);
+                            } catch (Exception e) {
+                                // Message failed to process, redeliver later
+                                finalConsumer.negativeAcknowledge(msg);
+                            }
+                        }
+        };
+
+        // TODO : need way to manage these threads
+        Thread threadCon = new Thread(consumerThread);
+        threadCon.start();
+
+        try {
+            threadCon.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
