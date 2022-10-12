@@ -20,18 +20,12 @@ import io.siddhi.core.util.config.ConfigReader;
 import io.siddhi.core.util.snapshot.state.State;
 import io.siddhi.core.util.snapshot.state.StateFactory;
 import io.siddhi.core.util.transport.OptionHolder;
-import io.siddhi.extension.io.live.metrics.SourceMetrics;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.wso2.carbon.si.metrics.core.internal.MetricsDataHolder;
 
-import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
-
-
-
 
 
 /**
@@ -127,7 +121,6 @@ import java.util.Map;
 public class LiveSource extends Source {
     private static final Logger logger = LogManager.getLogger(LiveSource.class);
     private String siddhiAppName;
-    private SourceMetrics metrics;
     private String selectQuery;
     private String hostName;
     private String apiKey;
@@ -158,7 +151,6 @@ public class LiveSource extends Source {
             this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
-            initMetrics(siddhiAppName);
         return null;
     }
 
@@ -215,9 +207,7 @@ public class LiveSource extends Source {
             sourceEventListener.onEvent(json , null);
 
         }
-        if (metrics != null) {
-            metrics.getTotalReadsMetric().inc();
-        }
+
     }
 
     /**
@@ -252,23 +242,6 @@ public class LiveSource extends Source {
 
     }
 
-    /**
-     * Initialize metrics.
-     */
-    protected void initMetrics(String appName) {
-        if (MetricsDataHolder.getInstance().getMetricService() != null
-                && MetricsDataHolder.getInstance().getMetricManagementService().isEnabled()) {
-            try {
-                if (MetricsDataHolder.getInstance().getMetricManagementService()
-                        .isReporterRunning(LiveSourceConstants.PROMETHEUS_REPORTER_NAME)) {
-                    metrics = new SourceMetrics(appName);
-                }
-            } catch (IllegalArgumentException e) {
-                logger.debug("Prometheus reporter is not running. Hence live source metrics will not be initialized for "
-                        + appName);
-            }
-        }
-    }
 
 
 }
