@@ -195,8 +195,14 @@ public class LiveSource extends Source {
                 .useSsl(true)
                 .build();
 
-        final C8Cursor<BaseDocument> cursor = c8db.db(null , "_system").query(selectQuery, null,
-                null, BaseDocument.class);
+        final C8Cursor<BaseDocument> cursor = c8db
+                .db(null , "_system")
+                .query(
+                        selectQuery,
+                        null,
+                null,
+                        BaseDocument.class
+                );
 
 
         for (; cursor.hasNext();) {
@@ -237,6 +243,7 @@ public class LiveSource extends Source {
                             // Wait for a message
                             Message msg = null;
                             try {
+                                assert finalConsumer != null;
                                 msg = finalConsumer.receive();
                             } catch (PulsarClientException e) {
                                 e.printStackTrace();
