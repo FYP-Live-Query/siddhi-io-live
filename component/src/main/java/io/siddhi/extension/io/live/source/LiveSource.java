@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -206,7 +207,6 @@ public class LiveSource extends Source {
         }
 
         PulsarClient client = null;
-
         try {
             client = PulsarClient.builder()
                         .serviceUrl("pulsar://localhost:6650") // TODO : need c8db stream
@@ -215,13 +215,13 @@ public class LiveSource extends Source {
             e.printStackTrace();
         }
 
-        Consumer consumer =
-                null;
+        Consumer consumer = null;
+        UUID uniqueTopicName = UUID.randomUUID();
         try {
             consumer = client
                         .newConsumer()
                         .topic("my-topic")                          // TODO : topic name should be collection name
-                        .subscriptionName("my-subscription")        // TODO : should be an unique name
+                        .subscriptionName(uniqueTopicName.toString())        // TODO : should be an unique name
                         .subscribe();
         } catch (PulsarClientException e) {
             e.printStackTrace();
