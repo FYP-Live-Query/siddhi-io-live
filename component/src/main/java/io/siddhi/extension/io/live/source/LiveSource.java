@@ -188,22 +188,16 @@ public class LiveSource extends Source {
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
 
         final C8DB c8db = new C8DB.Builder()
-                .useSsl(true)
-                .host(hostName , 443)
-                .apiKey(apiKey)
-                .user("root")
-                .useSsl(true)
-                .build();
+                                    .useSsl(true)
+                                    .host(hostName , 443)
+                                    .apiKey(apiKey)
+                                    .user("root")
+                                    .useSsl(true)
+                                    .build();
 
         final C8Cursor<BaseDocument> cursor = c8db
                 .db(null , "_system")
-                .query(
-                        selectQuery,
-                        null,
-                null,
-                        BaseDocument.class
-                );
-
+                .query(selectQuery, null, null, BaseDocument.class);
 
         for (; cursor.hasNext();) {
             Gson gson = new Gson();
@@ -215,8 +209,8 @@ public class LiveSource extends Source {
 
         try {
             client = PulsarClient.builder()
-                    .serviceUrl("pulsar://localhost:6650") // TODO : need c8db stream
-                    .build();
+                        .serviceUrl("pulsar://localhost:6650") // TODO : need c8db stream
+                        .build();
         } catch (PulsarClientException e) {
             e.printStackTrace();
         }
@@ -225,10 +219,10 @@ public class LiveSource extends Source {
                 null;
         try {
             consumer = client
-            .newConsumer()
-            .topic("my-topic")                          // TODO : topic name should be collection name
-            .subscriptionName("my-subscription")        // TODO : should be an unique name
-            .subscribe();
+                        .newConsumer()
+                        .topic("my-topic")                          // TODO : topic name should be collection name
+                        .subscriptionName("my-subscription")        // TODO : should be an unique name
+                        .subscribe();
         } catch (PulsarClientException e) {
             e.printStackTrace();
         }
@@ -239,7 +233,6 @@ public class LiveSource extends Source {
                 () -> {
                         int i = 0;
                         while (true) {
-
                             // Wait for a message
                             Message msg = null;
                             try {
@@ -248,12 +241,10 @@ public class LiveSource extends Source {
                             } catch (PulsarClientException e) {
                                 e.printStackTrace();
                             }
-
                             try {
                                 // Do something with the message
                                 assert msg != null;
                                 sourceEventListener.onEvent(msg.getData() , null);
-
                                 // Acknowledge the message so that it can be deleted by the message broker
                                 finalConsumer.acknowledge(msg);
                             } catch (Exception e) {
