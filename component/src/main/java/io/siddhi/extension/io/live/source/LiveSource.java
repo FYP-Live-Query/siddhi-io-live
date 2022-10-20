@@ -209,11 +209,11 @@ public class LiveSource extends Source {
         Thread threadCon = new Thread(consumerThread);
         threadCon.start();
         
-//        try {
-//            threadCon.join();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            threadCon.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
     }
 
