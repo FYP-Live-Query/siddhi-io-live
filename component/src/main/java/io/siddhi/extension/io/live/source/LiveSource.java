@@ -128,6 +128,9 @@ public class LiveSource extends Source {
     private String apiKey;
     protected SourceEventListener sourceEventListener;
     protected String[] requestedTransportPropertyNames;
+    private Monitor monitor;
+    private StreamThread consumerThread;
+
     /**
      * The initialization method for {@link Source}, will be called before other methods. It used to validate
      * all configurations and to get initial values.
@@ -153,6 +156,7 @@ public class LiveSource extends Source {
             this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
+            this.monitor  = new Monitor();
         return null;
     }
 
@@ -187,82 +191,29 @@ public class LiveSource extends Source {
      */
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
+        // TODO : give a unique subscription name
+        consumerThread = new StreamThread("pulsar://localhost:6650","my-topic","my-subscriptionl",
+                                monitor,sourceEventListener
+                );
 
-        final C8DB c8db = new C8DB.Builder()
-                                    .useSsl(true)
-                                    .host(hostName , 443)
-                                    .apiKey(apiKey)
-                                    .user("root")
-                                    .useSsl(true)
-                                    .build();
+        final C8DB c8db = new C8DB.Builder().useSsl(true).host(hostName , 443).apiKey(apiKey).user("root").build();
 
-        final C8Cursor<BaseDocument> cursor = c8db
-                .db(null , "_system")
-                .query(selectQuery, null, null, BaseDocument.class);
+        final C8Cursor<BaseDocument> cursor = c8db.db(null , "_system").query(selectQuery, null, null, BaseDocument.class);
 
-        for (; cursor.hasNext();) {
+        while (cursor.hasNext()) {
             Gson gson = new Gson();
             String json = gson.toJson(cursor.next());
             sourceEventListener.onEvent(json , null);
         }
 
-        PulsarClient client = null;
-        try {
-            client = PulsarClient.builder()
-                        .serviceUrl("pulsar://localhost:6650") // TODO : need c8db stream
-                        .build();
-        } catch (PulsarClientException e) {
-            e.printStackTrace();
-        }
-
-        Consumer consumer = null;
-        UUID uniqueTopicName = UUID.randomUUID();
-        try {
-            consumer = client
-                        .newConsumer()
-                        .topic("my-topic")                          // TODO : topic name should be collection name
-                        .subscriptionName(uniqueTopicName.toString())        // TODO : should be an unique name
-                        .subscribe();
-        } catch (PulsarClientException e) {
-            e.printStackTrace();
-        }
-
-
-        Consumer finalConsumer = consumer;
-        Runnable consumerThread =
-                () -> {
-                        int i = 0;
-                        while (true) {
-                            // Wait for a message
-                            Message msg = null;
-                            try {
-                                assert finalConsumer != null;
-                                msg = finalConsumer.receive();
-                            } catch (PulsarClientException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                // Do something with the message
-                                assert msg != null;
-                                sourceEventListener.onEvent(msg.getData() , null);
-                                // Acknowledge the message so that it can be deleted by the message broker
-                                finalConsumer.acknowledge(msg);
-                            } catch (Exception e) {
-                                // Message failed to process, redeliver later
-                                finalConsumer.negativeAcknowledge(msg);
-                            }
-                        }
-        };
-
-        // TODO : need way to manage these threads
         Thread threadCon = new Thread(consumerThread);
         threadCon.start();
-
-        try {
-            threadCon.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        
+//        try {
+//            threadCon.join();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
     }
 
@@ -271,7 +222,7 @@ public class LiveSource extends Source {
      */
     @Override
     public void pause() {
-
+        consumerThread.pause();
     }
 
     /**
@@ -279,7 +230,15 @@ public class LiveSource extends Source {
      */
     @Override
     public void resume() {
+        consumerThread.resume();
+    }
 
+    /**
+     * Called at the end to clean all the resources consumed by the {@link Source}.
+     */
+    @Override
+    public void destroy() {
+        consumerThread.stop();
     }
 
     /**
@@ -289,15 +248,4 @@ public class LiveSource extends Source {
     public void disconnect() {
 
     }
-
-    /**
-     * Called at the end to clean all the resources consumed by the {@link Source}.
-     */
-    @Override
-    public void destroy() {
-
-    }
-
-
-
 }
