@@ -1,4 +1,6 @@
-package io.siddhi.extension.io.live.source;
+package io.siddhi.extension.io.live.source.Thread;
+
+import io.siddhi.extension.io.live.source.Stream.StreamThread;
 
 public class StoppedThreadState extends ThreadState {
     public StoppedThreadState(StreamThread streamThread) {
@@ -6,17 +8,17 @@ public class StoppedThreadState extends ThreadState {
     }
 
     @Override
-    protected void stop() {
+    public void stop() {
         System.out.println("Thread has already stopped."); // TODO :  throw an exception
     }
 
     @Override
-    protected void pause() {
+    public void pause() {
         System.out.println("Thread has already stopped."); // TODO :  throw an exception
     }
 
     @Override
-    protected void resume() {
+    public void resume() {
         System.out.println("Thread has stopped."); // TODO :  throw an exception
     }
 }

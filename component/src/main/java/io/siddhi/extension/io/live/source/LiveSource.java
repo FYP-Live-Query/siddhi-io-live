@@ -7,7 +7,7 @@ import com.c8db.entity.BaseDocument;
 
 import com.google.gson.Gson;
 
-import org.apache.pulsar.client.api.*;
+import io.siddhi.extension.io.live.source.Stream.StreamThread;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
 import io.siddhi.annotation.Parameter;
@@ -27,7 +27,6 @@ import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 
 /**

@@ -1,13 +1,15 @@
-package io.siddhi.extension.io.live.source;
+package io.siddhi.extension.io.live.source.Stream;
 
 import io.siddhi.core.stream.input.source.SourceEventListener;
+import io.siddhi.extension.io.live.source.Monitor;
+import io.siddhi.extension.io.live.source.Thread.RunningThreadState;
+import io.siddhi.extension.io.live.source.Thread.ThreadState;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 
 public class StreamThread implements Runnable {
     private PulsarClient pulsarClient;
@@ -94,7 +96,7 @@ public class StreamThread implements Runnable {
         isThreadRunning = threadRunning;
     }
 
-    protected void stop() {
+    public void stop() {
         this.threadState.stop();
     }
 
@@ -125,18 +127,18 @@ public class StreamThread implements Runnable {
         }
     }
 
-    protected void pause() {
+    public void pause() {
         this.threadState.pause();
     }
 
-    protected void doResume() {
+    public void doResume() {
         synchronized(pauseMonitor){
             pauseMonitor.setSignalled(true);
             pauseMonitor.notify();
         }
     }
 
-    protected void resume() {
+    public void resume() {
         this.threadState.resume();
     }
 

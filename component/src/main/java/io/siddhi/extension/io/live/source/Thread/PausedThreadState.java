@@ -1,4 +1,6 @@
-package io.siddhi.extension.io.live.source;
+package io.siddhi.extension.io.live.source.Thread;
+
+import io.siddhi.extension.io.live.source.Stream.StreamThread;
 
 public class PausedThreadState extends ThreadState {
 
@@ -7,7 +9,7 @@ public class PausedThreadState extends ThreadState {
     }
 
     @Override
-    protected void stop() {
+    public void stop() {
         // stop thread
         if(streamThread.isThreadRunning()){
             streamThread.setThreadRunning(false);
@@ -19,14 +21,14 @@ public class PausedThreadState extends ThreadState {
     }
 
     @Override
-    protected void pause() {
+    public void pause() {
         // TODO :  throw an exception
         // Do nothing or throw exception saying thread is already paused
         System.out.println("Thread has already paused");
     }
 
     @Override
-    protected void resume() {
+    public void resume() {
         // resume Thread
         if(streamThread.isPaused()){
             System.out.println("Resuming Thread - thread state p");
