@@ -1,9 +1,8 @@
 package io.siddhi.extension.io.live.source.Thread;
 
-import io.siddhi.extension.io.live.source.Stream.StreamThread;
 
 public class StoppedThreadState extends ThreadState {
-    public StoppedThreadState(StreamThread streamThread) {
+    public StoppedThreadState(AbstractThread streamThread) {
         super(streamThread);
     }
 

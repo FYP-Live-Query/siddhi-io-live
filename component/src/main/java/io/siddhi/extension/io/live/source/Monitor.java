@@ -11,7 +11,7 @@ public class Monitor {
         return signalled;
     }
 
-    public void setSignalled(boolean wasSignalled) {
-        this.signalled = wasSignalled;
+    public void setSignalled(boolean signalled) {
+        this.signalled = signalled;
     }
 }

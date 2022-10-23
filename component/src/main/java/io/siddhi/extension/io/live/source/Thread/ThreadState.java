@@ -1,13 +1,11 @@
 package io.siddhi.extension.io.live.source.Thread;
 
-import io.siddhi.extension.io.live.source.Stream.StreamThread;
-
 public abstract class ThreadState {
 
-    protected StreamThread streamThread;
+    protected AbstractThread thread;
 
-    public ThreadState(StreamThread streamThread) {
-        this.streamThread = streamThread;
+    public ThreadState(AbstractThread thread) {
+        this.thread = thread;
     }
 
     public abstract void stop();

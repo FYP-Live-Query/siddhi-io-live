@@ -21,6 +21,7 @@ import io.siddhi.core.util.config.ConfigReader;
 import io.siddhi.core.util.snapshot.state.State;
 import io.siddhi.core.util.snapshot.state.StateFactory;
 import io.siddhi.core.util.transport.OptionHolder;
+import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -191,25 +192,29 @@ public class LiveSource extends Source {
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
         // TODO : give a unique subscription name
-        consumerThread = new StreamThread("pulsar://localhost:6650","my-topic","my-subscriptionl",
+        consumerThread = new StreamThread(
+                "pulsar://localhost:6650","my-topic","my-subscriptionl",
                                 monitor,sourceEventListener
                 );
+        AbstractThread dbThread = new DBThread(monitor,sourceEventListener,hostName,apiKey,"root",selectQuery);
+//        final C8DB c8db = new C8DB.Builder().useSsl(true).host(hostName , 443).apiKey(apiKey).user("root").build();
+//
+//        final C8Cursor<BaseDocument> cursor = c8db.db(null , "_system").query(selectQuery, null, null, BaseDocument.class);
+//
+//        while (cursor.hasNext()) {
+//            Gson gson = new Gson();
+//            String json = gson.toJson(cursor.next());
+//            sourceEventListener.onEvent(json , null);
+//        }
 
-        final C8DB c8db = new C8DB.Builder().useSsl(true).host(hostName , 443).apiKey(apiKey).user("root").build();
+        Thread threadCon = new Thread(consumerThread, "streaming thread");
+        Thread threadDB = new Thread(dbThread, "Initial database thread");
 
-        final C8Cursor<BaseDocument> cursor = c8db.db(null , "_system").query(selectQuery, null, null, BaseDocument.class);
-
-        while (cursor.hasNext()) {
-            Gson gson = new Gson();
-            String json = gson.toJson(cursor.next());
-            sourceEventListener.onEvent(json , null);
-        }
-
-        Thread threadCon = new Thread(consumerThread);
         threadCon.start();
-        
+        threadDB.start();
         try {
             threadCon.join();
+            threadDB.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
