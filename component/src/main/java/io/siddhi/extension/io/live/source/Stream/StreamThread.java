@@ -28,8 +28,16 @@ public class StreamThread extends AbstractThread {
         this.sourceEventListener = sourceEventListener;
     }
 
-    @Override
-    public void run() {
+    private void unsubscribe(){
+        try {
+            consumer.unsubscribe();
+            System.out.println("consumer unsubscribed to the stream");
+        } catch (PulsarClientException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void subscribe(){
         try {
 
             pulsarClient = PulsarClient.builder()
@@ -42,15 +50,14 @@ public class StreamThread extends AbstractThread {
                     .subscribe();
 
         } catch (PulsarClientException e) {
-
-            try {
-                consumer.unsubscribe();
-            } catch (PulsarClientException ex) {
-                ex.printStackTrace();
-            }
-
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void run() {
+
+        subscribe();
 
         while(isThreadRunning){
             Message msg = null;
@@ -65,6 +72,7 @@ public class StreamThread extends AbstractThread {
             } catch (PulsarClientException e) {
                 e.printStackTrace();
             }
+
             try {
                 consumer.acknowledge(msg);
             } catch (PulsarClientException e) {
@@ -72,5 +80,8 @@ public class StreamThread extends AbstractThread {
                 e.printStackTrace();
             }
         }
+
+        // clean exit if thread is stopped
+        unsubscribe();
     }
 }
