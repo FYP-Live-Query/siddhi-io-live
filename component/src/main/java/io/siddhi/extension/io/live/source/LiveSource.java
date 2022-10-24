@@ -1,12 +1,6 @@
 package io.siddhi.extension.io.live.source;
 
 
-import com.c8db.C8Cursor;
-import com.c8db.C8DB;
-import com.c8db.entity.BaseDocument;
-
-import com.google.gson.Gson;
-
 import io.siddhi.extension.io.live.source.Stream.StreamThread;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
@@ -23,6 +17,7 @@ import io.siddhi.core.util.snapshot.state.StateFactory;
 import io.siddhi.core.util.transport.OptionHolder;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
+import io.siddhi.extension.io.live.utils.Monitor;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
