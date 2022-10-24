@@ -29,7 +29,6 @@ public class DBThread extends AbstractThread {
         this.sourceEventListener = sourceEventListener;
         this.hostName = hostName;
         this.apiKey = apiKey;
-        this.user = user;
         this.selectSQL = selectSQL;
     }
 
