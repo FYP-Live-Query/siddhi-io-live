@@ -1,6 +1,6 @@
 package io.siddhi.extension.io.live.source.Thread;
 
-import io.siddhi.extension.io.live.source.Monitor;
+import io.siddhi.extension.io.live.utils.Monitor;
 
 public abstract class AbstractThread implements Runnable {
     protected final Monitor interThreadSignalMonitor;
@@ -14,6 +14,7 @@ public abstract class AbstractThread implements Runnable {
         this.interThreadSignalMonitor = interThreadSignalMonitor;
         this.pauseMonitor = new Monitor();
     }
+
     // for thread signalling
     public void doWait(){
         synchronized(interThreadSignalMonitor){
