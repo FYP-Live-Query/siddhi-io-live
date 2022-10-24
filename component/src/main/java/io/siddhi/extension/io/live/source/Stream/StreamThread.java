@@ -1,7 +1,7 @@
 package io.siddhi.extension.io.live.source.Stream;
 
 import io.siddhi.core.stream.input.source.SourceEventListener;
-import io.siddhi.extension.io.live.source.Monitor;
+import io.siddhi.extension.io.live.utils.Monitor;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
