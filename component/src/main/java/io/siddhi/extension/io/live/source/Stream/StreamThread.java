@@ -11,21 +11,21 @@ import org.apache.pulsar.client.api.PulsarClientException;
 import java.nio.charset.StandardCharsets;
 
 public class StreamThread extends AbstractThread {
-    private PulsarClient pulsarClient;
-    private String serviceUrlOfPulsarServer;
+    private IPulsarClientBehavior pulsarClientBehavior;
     private String topicOfStream;
     private String subscriptionNameOfConsumer;
     private Consumer consumer;
     private final SourceEventListener sourceEventListener;
 
-    public StreamThread(String serviceUrlOfPulsarServer, String topicOfStream,
+    public StreamThread(String topicOfStream,
+                        IPulsarClientBehavior pulsarClientBehavior,
                         String subscriptionNameOfConsumer, Monitor signalMonitor,
                         SourceEventListener sourceEventListener) {
         super(signalMonitor);
-        this.serviceUrlOfPulsarServer = serviceUrlOfPulsarServer;
         this.topicOfStream = topicOfStream;
         this.subscriptionNameOfConsumer = subscriptionNameOfConsumer;
         this.sourceEventListener = sourceEventListener;
+        this.pulsarClientBehavior = pulsarClientBehavior;
     }
 
     private void unsubscribe(){
@@ -40,9 +40,7 @@ public class StreamThread extends AbstractThread {
     private void subscribe(){
         try {
 
-            pulsarClient = PulsarClient.builder()
-                    .serviceUrl(serviceUrlOfPulsarServer)
-                    .build();
+            PulsarClient pulsarClient = pulsarClientBehavior.getPulsarClient();
 
             consumer = pulsarClient.newConsumer()
                     .topic(topicOfStream)

@@ -1,4 +1,4 @@
-package io.siddhi.extension.io.live.source;
+package io.siddhi.extension.io.live.utils;
 
 public class Monitor {
     public boolean signalled;

@@ -1,6 +1,8 @@
 package io.siddhi.extension.io.live.source;
 
 
+import io.siddhi.extension.io.live.source.Stream.IPulsarClientBehavior;
+import io.siddhi.extension.io.live.source.Stream.PulsarClientTLSAuth;
 import io.siddhi.extension.io.live.source.Stream.StreamThread;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
@@ -125,6 +127,7 @@ public class LiveSource extends Source {
     protected String[] requestedTransportPropertyNames;
     private Monitor monitor;
     private StreamThread consumerThread;
+    private IPulsarClientBehavior pulsarClientTLSAuth;
 
     /**
      * The initialization method for {@link Source}, will be called before other methods. It used to validate
@@ -187,20 +190,17 @@ public class LiveSource extends Source {
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
         // TODO : give a unique subscription name
+        pulsarClientTLSAuth = new PulsarClientTLSAuth(
+                apiKey,
+                "pulsar+ssl://varden-4f0f3c4f-us-east.paas.macrometa.io:6651"
+        );
+
         consumerThread = new StreamThread(
-                "pulsar://localhost:6650","my-topic","my-subscriptionl",
+                "madu140_gmail.com/c8local._system/network_traffic",pulsarClientTLSAuth,"my-subscriptionl",
                                 monitor,sourceEventListener
                 );
+
         AbstractThread dbThread = new DBThread(monitor,sourceEventListener,hostName,apiKey,"root",selectQuery);
-//        final C8DB c8db = new C8DB.Builder().useSsl(true).host(hostName , 443).apiKey(apiKey).user("root").build();
-//
-//        final C8Cursor<BaseDocument> cursor = c8db.db(null , "_system").query(selectQuery, null, null, BaseDocument.class);
-//
-//        while (cursor.hasNext()) {
-//            Gson gson = new Gson();
-//            String json = gson.toJson(cursor.next());
-//            sourceEventListener.onEvent(json , null);
-//        }
 
         Thread threadCon = new Thread(consumerThread, "streaming thread");
         Thread threadDB = new Thread(dbThread, "Initial database thread");
