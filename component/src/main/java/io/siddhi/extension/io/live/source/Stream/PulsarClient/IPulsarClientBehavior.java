@@ -1,4 +1,4 @@
-package io.siddhi.extension.io.live.source.Stream;
+package io.siddhi.extension.io.live.source.Stream.PulsarClient;
 
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;

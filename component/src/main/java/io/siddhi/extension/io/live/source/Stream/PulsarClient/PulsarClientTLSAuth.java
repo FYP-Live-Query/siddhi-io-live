@@ -1,10 +1,11 @@
-package io.siddhi.extension.io.live.source.Stream;
+package io.siddhi.extension.io.live.source.Stream.PulsarClient;
 
+import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
 import org.apache.pulsar.client.api.AuthenticationFactory;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 
-public class PulsarClientTLSAuth implements IPulsarClientBehavior{
+public class PulsarClientTLSAuth implements IPulsarClientBehavior {
     private final String gdnAPIToken;
     private final String serviceUrlOfPulsarServer;
 

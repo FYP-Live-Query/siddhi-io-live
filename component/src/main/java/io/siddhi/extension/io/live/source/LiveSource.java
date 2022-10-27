@@ -1,8 +1,8 @@
 package io.siddhi.extension.io.live.source;
 
 
-import io.siddhi.extension.io.live.source.Stream.IPulsarClientBehavior;
-import io.siddhi.extension.io.live.source.Stream.PulsarClientTLSAuth;
+import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
+import io.siddhi.extension.io.live.source.Stream.PulsarClient.PulsarClientTLSAuth;
 import io.siddhi.extension.io.live.source.Stream.StreamThread;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;

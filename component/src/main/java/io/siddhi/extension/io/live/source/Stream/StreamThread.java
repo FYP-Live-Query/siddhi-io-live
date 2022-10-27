@@ -1,6 +1,10 @@
 package io.siddhi.extension.io.live.source.Stream;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.siddhi.core.stream.input.source.SourceEventListener;
+import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
 import io.siddhi.extension.io.live.utils.Monitor;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import org.apache.pulsar.client.api.Consumer;
@@ -8,6 +12,7 @@ import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class StreamThread extends AbstractThread {
@@ -56,7 +61,7 @@ public class StreamThread extends AbstractThread {
     public void run() {
 
         subscribe();
-
+        ObjectMapper objectMapper = new ObjectMapper();
         while(isThreadRunning){
             Message msg = null;
             try {
@@ -65,9 +70,17 @@ public class StreamThread extends AbstractThread {
                     doPause();
                 }
                 msg = consumer.receive();
-                sourceEventListener.onEvent(msg.getData(),null);
+
+
+                ObjectNode objectNode = objectMapper.createObjectNode();
+
+                String stringJsonMsg = new String(msg.getData(), StandardCharsets.UTF_8);
+                objectNode.put("properties",stringJsonMsg);
+
+                sourceEventListener.onEvent(objectNode.toString(),null);
+
                 String s = new String(msg.getData(), StandardCharsets.UTF_8);
-            } catch (PulsarClientException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
 

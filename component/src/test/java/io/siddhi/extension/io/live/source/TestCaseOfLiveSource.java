@@ -70,19 +70,7 @@ public class TestCaseOfLiveSource {
             }
         });
         siddhiAppRuntime0.start();
-        //test listening to stream
-//        final C8DB c8db = new C8DB.Builder()
-//                .useSsl(true)
-//                .host("api-varden-4f0f3c4f.paas.macrometa.io" , 443)
-//                .apiKey("madu140_gmail.com.AccessPortal.2PL8EeyIAMn2sx7YHKWMM58tmJLES4NyIWq6Cnsj0BTMjygJyF3b14zb2sidcauXccccb8")
-//                .user("root")
-//                .useSsl(true)
-//                .build();
-//
-//
-////        final Map<String, Object> bindVars = new MapBuilder().put("name", "Homer").get();
-//        final C8Cursor<BaseDocument> cursor = c8db.db(null , "_system").query("FOR u IN firstCollection UPDATE u WITH { name: 'test4' } IN firstCollection", null,
-//                null, BaseDocument.class);
+
         siddhiAppRuntime0.shutdown();
     }
 
