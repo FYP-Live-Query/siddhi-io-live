@@ -1,13 +1,9 @@
 package io.siddhi.extension.io.live.source;
 
 
-import com.c8db.C8Cursor;
-import com.c8db.C8DB;
-import com.c8db.entity.BaseDocument;
-
-import com.google.gson.Gson;
-
-import org.apache.pulsar.client.api.*;
+import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
+import io.siddhi.extension.io.live.source.Stream.PulsarClient.PulsarClientTLSAuth;
+import io.siddhi.extension.io.live.source.Stream.StreamThread;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
 import io.siddhi.annotation.Parameter;
@@ -21,13 +17,14 @@ import io.siddhi.core.util.config.ConfigReader;
 import io.siddhi.core.util.snapshot.state.State;
 import io.siddhi.core.util.snapshot.state.StateFactory;
 import io.siddhi.core.util.transport.OptionHolder;
+import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
+import io.siddhi.extension.io.live.utils.Monitor;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 
 /**
@@ -128,6 +125,10 @@ public class LiveSource extends Source {
     private String apiKey;
     protected SourceEventListener sourceEventListener;
     protected String[] requestedTransportPropertyNames;
+    private Monitor monitor;
+    private StreamThread consumerThread;
+    private IPulsarClientBehavior pulsarClientTLSAuth;
+
     /**
      * The initialization method for {@link Source}, will be called before other methods. It used to validate
      * all configurations and to get initial values.
@@ -153,6 +154,7 @@ public class LiveSource extends Source {
             this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
+            this.monitor  = new Monitor();
         return null;
     }
 
@@ -187,79 +189,27 @@ public class LiveSource extends Source {
      */
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
+        // TODO : give a unique subscription name
+        pulsarClientTLSAuth = new PulsarClientTLSAuth(
+                apiKey,
+                "pulsar+ssl://varden-4f0f3c4f-us-east.paas.macrometa.io:6651"
+        );
 
-        final C8DB c8db = new C8DB.Builder()
-                                    .useSsl(true)
-                                    .host(hostName , 443)
-                                    .apiKey(apiKey)
-                                    .user("root")
-                                    .useSsl(true)
-                                    .build();
+        consumerThread = new StreamThread(
+                "madu140_gmail.com/c8local._system/network_traffic",pulsarClientTLSAuth,"my-subscriptionl",
+                                monitor,sourceEventListener
+                );
 
-        final C8Cursor<BaseDocument> cursor = c8db
-                .db(null , "_system")
-                .query(selectQuery, null, null, BaseDocument.class);
+        AbstractThread dbThread = new DBThread(monitor,sourceEventListener,hostName,apiKey,"root",selectQuery);
 
-        for (; cursor.hasNext();) {
-            Gson gson = new Gson();
-            String json = gson.toJson(cursor.next());
-            sourceEventListener.onEvent(json , null);
-        }
+        Thread threadCon = new Thread(consumerThread, "streaming thread");
+        Thread threadDB = new Thread(dbThread, "Initial database thread");
 
-        PulsarClient client = null;
-        try {
-            client = PulsarClient.builder()
-                        .serviceUrl("pulsar://localhost:6650") // TODO : need c8db stream
-                        .build();
-        } catch (PulsarClientException e) {
-            e.printStackTrace();
-        }
-
-        Consumer consumer = null;
-        UUID uniqueTopicName = UUID.randomUUID();
-        try {
-            consumer = client
-                        .newConsumer()
-                        .topic("my-topic")                          // TODO : topic name should be collection name
-                        .subscriptionName(uniqueTopicName.toString())        // TODO : should be an unique name
-                        .subscribe();
-        } catch (PulsarClientException e) {
-            e.printStackTrace();
-        }
-
-
-        Consumer finalConsumer = consumer;
-        Runnable consumerThread =
-                () -> {
-                        int i = 0;
-                        while (true) {
-                            // Wait for a message
-                            Message msg = null;
-                            try {
-                                assert finalConsumer != null;
-                                msg = finalConsumer.receive();
-                            } catch (PulsarClientException e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                // Do something with the message
-                                assert msg != null;
-                                sourceEventListener.onEvent(msg.getData() , null);
-                                // Acknowledge the message so that it can be deleted by the message broker
-                                finalConsumer.acknowledge(msg);
-                            } catch (Exception e) {
-                                // Message failed to process, redeliver later
-                                finalConsumer.negativeAcknowledge(msg);
-                            }
-                        }
-        };
-
-        // TODO : need way to manage these threads
-        Thread threadCon = new Thread(consumerThread);
         threadCon.start();
-
+        threadDB.start();
         try {
             threadCon.join();
+            threadDB.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -271,7 +221,7 @@ public class LiveSource extends Source {
      */
     @Override
     public void pause() {
-
+        consumerThread.pause();
     }
 
     /**
@@ -279,7 +229,15 @@ public class LiveSource extends Source {
      */
     @Override
     public void resume() {
+        consumerThread.resume();
+    }
 
+    /**
+     * Called at the end to clean all the resources consumed by the {@link Source}.
+     */
+    @Override
+    public void destroy() {
+        consumerThread.stop();
     }
 
     /**
@@ -289,15 +247,4 @@ public class LiveSource extends Source {
     public void disconnect() {
 
     }
-
-    /**
-     * Called at the end to clean all the resources consumed by the {@link Source}.
-     */
-    @Override
-    public void destroy() {
-
-    }
-
-
-
 }
