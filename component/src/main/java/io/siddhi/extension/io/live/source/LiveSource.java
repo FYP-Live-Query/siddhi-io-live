@@ -82,12 +82,6 @@ import java.util.Map;
         namespace = "source",
         description = " ",
         parameters = {
-                /*@Parameter(name = " ",
-                        description = " " ,
-                        dynamic = false/true,
-                        optional = true/false, defaultValue = " ",
-                        type = {DataType.INT, DataType.BOOL, DataType.STRING, DataType.DOUBLE, }),
-                        type = {DataType.INT, DataType.BOOL, DataType.STRING, DataType.DOUBLE, }),*/
                 @Parameter(
                         name = "sql.query",
                         description = "The SQL select query",
@@ -128,6 +122,7 @@ public class LiveSource extends Source {
     private Monitor monitor;
     private StreamThread consumerThread;
     private IPulsarClientBehavior pulsarClientTLSAuth;
+    private String serviceURLOfPulsarServer = "pulsar+ssl://%s:6651";
 
     /**
      * The initialization method for {@link Source}, will be called before other methods. It used to validate
@@ -154,6 +149,7 @@ public class LiveSource extends Source {
             this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
+            this.serviceURLOfPulsarServer = String.format(serviceURLOfPulsarServer,hostName);
             this.monitor  = new Monitor();
         return null;
     }
@@ -190,10 +186,7 @@ public class LiveSource extends Source {
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
         // TODO : give a unique subscription name
-        pulsarClientTLSAuth = new PulsarClientTLSAuth(
-                apiKey,
-                "pulsar+ssl://varden-4f0f3c4f-us-east.paas.macrometa.io:6651"
-        );
+        pulsarClientTLSAuth = new PulsarClientTLSAuth(apiKey,serviceURLOfPulsarServer);
 
         consumerThread = new StreamThread(
                 "madu140_gmail.com/c8local._system/network_traffic",pulsarClientTLSAuth,"my-subscriptionl",
