@@ -16,9 +16,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class StreamThread extends AbstractThread {
-    private IPulsarClientBehavior pulsarClientBehavior;
-    private String topicOfStream;
-    private String subscriptionNameOfConsumer;
+    private final IPulsarClientBehavior pulsarClientBehavior;
+    private final String topicOfStream;
+    private final String subscriptionNameOfConsumer;
     private Consumer consumer;
     private final SourceEventListener sourceEventListener;
 
@@ -70,7 +70,6 @@ public class StreamThread extends AbstractThread {
                     doPause();
                 }
                 msg = consumer.receive();
-
 
                 ObjectNode objectNode = objectMapper.createObjectNode();
 
