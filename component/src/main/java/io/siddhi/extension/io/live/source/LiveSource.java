@@ -192,12 +192,12 @@ public class LiveSource extends Source {
         // TODO : give a unique subscription name
         pulsarClientTLSAuth = new PulsarClientTLSAuth(
                 apiKey,
-                "pulsar+ssl://varden-4f0f3c4f-us-east.paas.macrometa.io:6651"
+                "pulsar+ssl://api-peamouth-0b57f3c7.paas.macrometa.io:6651"
         );
 
         consumerThread = new StreamThread(
-                "madu140_gmail.com/c8local._system/network_traffic",pulsarClientTLSAuth,"my-subscriptionl",
-                                monitor,sourceEventListener
+                "Tu_TZ0W2cR92-sr1j-l7ACA/c8local._system/NetworkTrafficTable"
+                ,pulsarClientTLSAuth,"my-subscriptionl",monitor,sourceEventListener
                 );
 
         AbstractThread dbThread = new DBThread(monitor,sourceEventListener,hostName,apiKey,"root",selectQuery);
