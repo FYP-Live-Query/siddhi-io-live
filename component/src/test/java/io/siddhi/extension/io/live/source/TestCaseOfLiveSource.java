@@ -1,8 +1,5 @@
 package io.siddhi.extension.io.live.source;
 
-import com.c8db.C8Cursor;
-import com.c8db.C8DB;
-import com.c8db.entity.BaseDocument;
 import io.siddhi.core.SiddhiAppRuntime;
 import io.siddhi.core.SiddhiManager;
 import io.siddhi.core.event.Event;
@@ -39,15 +36,13 @@ public class TestCaseOfLiveSource {
      */
     @Test
     public void liveSelect() throws Exception {
-//        List<String> receivedEventNameList = new ArrayList<>(2);
         PersistenceStore persistenceStore = new InMemoryPersistenceStore();
         SiddhiManager siddhiManager = new SiddhiManager();
         siddhiManager.setPersistenceStore(persistenceStore);
         String inStreamDefinition0 = "@App:name('TestSiddhiApp0')" +
-                "@source(type='live',sql.query='FOR t IN network_traffic COLLECT browser = t.browser WITH COUNT INTO value RETURN {browser: browser,totalCount: value}', " +
-                "host.name='api-varden-4f0f3c4f.paas.macrometa.io'," +
-                "api.key = 'madu140_gmail.com." +
-                "AccessPortal.2PL8EeyIAMn2sx7YHKWMM58tmJLES4NyIWq6Cnsj0BTMjygJyF3b14zb2sidcauXccccb8', " +
+                "@source(type='live',sql.query='FOR t IN NetworkTrafficTable COLLECT browser = t.browser WITH COUNT INTO value RETURN {browser: browser,totalCount: value}', " +
+                "host.name='api-peamouth-0b57f3c7.paas.macrometa.io'," +
+                "api.key = 'Tu_TZ0W2cR92-sr1j-l7ACA.newone.9pej9tihskpx2vYZaxubGW3sFCJLzxe55NRh7T0uk1JMYiRmHdiQsWh5JhRXXT6c418385', " +
                 " @map(type='json', fail.on.missing.attribute='false') )" +
                 "define stream inputStream (id String,key String,revision String,properties String);";
 
