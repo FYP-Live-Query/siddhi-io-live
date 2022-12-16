@@ -11,6 +11,7 @@ import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.tapestry5.json.JSONObject;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -82,8 +83,12 @@ public class StreamThread extends AbstractThread {
 
                 String stringJsonMsg = new String(msg.getData(), StandardCharsets.UTF_8);
                 objectNode.put("properties",stringJsonMsg);
-
-                sourceEventListener.onEvent(objectNode.toString(),null);
+                System.out.println("stream_test"+objectNode.toString());
+                JSONObject jsonObject = new JSONObject(objectNode.toString());
+                JSONObject properties = jsonObject.getJSONObject("properties");
+                properties.put("initial_data", "false");
+                String str = jsonObject.toString();
+                sourceEventListener.onEvent(str,null);
 
                 String s = new String(msg.getData(), StandardCharsets.UTF_8);
             } catch (PulsarClientException e) {

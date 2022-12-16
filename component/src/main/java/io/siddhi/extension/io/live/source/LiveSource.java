@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.UUID;
 
 /**
  * This is a sample class-level comment, explaining what the extension class does.
@@ -123,7 +123,6 @@ public class LiveSource extends Source {
     private StreamThread consumerThread;
     private IPulsarClientBehavior pulsarClientTLSAuth;
     private String serviceURLOfPulsarServer = "pulsar+ssl://%s:6651";
-
     /**
      * The initialization method for {@link Source}, will be called before other methods. It used to validate
      * all configurations and to get initial values.
@@ -189,10 +188,9 @@ public class LiveSource extends Source {
         pulsarClientTLSAuth = new PulsarClientTLSAuth(apiKey,serviceURLOfPulsarServer);
 
         consumerThread = new StreamThread(
-                "Tu_TZ0W2cR92-sr1j-l7ACA/c8local._system/NetworkTrafficTable",pulsarClientTLSAuth,"my-subscriptionl",
+                "Tu_TZ0W2cR92-sr1j-l7ACA/c8local._system/NetworkTrafficTable",pulsarClientTLSAuth,UUID.randomUUID().toString(),
                                 monitor,sourceEventListener
                 );
-
         AbstractThread dbThread = new DBThread(monitor,sourceEventListener,hostName,apiKey,"root",selectQuery);
 
         Thread threadCon = new Thread(consumerThread, "streaming thread");

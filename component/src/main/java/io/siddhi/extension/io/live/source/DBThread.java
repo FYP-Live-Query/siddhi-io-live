@@ -7,6 +7,8 @@ import com.google.gson.Gson;
 import io.siddhi.core.stream.input.source.SourceEventListener;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import io.siddhi.extension.io.live.utils.Monitor;
+//import net.minidev.json.JSONObject;
+import org.apache.tapestry5.json.JSONObject;
 
 public class DBThread extends AbstractThread {
     private final SourceEventListener sourceEventListener;
@@ -46,7 +48,12 @@ public class DBThread extends AbstractThread {
             }
             Gson gson = new Gson();
             String json = gson.toJson(cursor.next());
-            System.out.println(json);
+            System.out.println("json"+json);
+            JSONObject jsonObject = new JSONObject(json);
+            JSONObject properties = jsonObject.getJSONObject("properties");
+            properties.put("initial_data", "true");
+            json = jsonObject.toString();
+            System.out.println("new"+json);
             sourceEventListener.onEvent(json , null);
         }
     }
