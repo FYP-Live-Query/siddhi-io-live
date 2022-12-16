@@ -7,10 +7,7 @@ import io.siddhi.core.stream.input.source.SourceEventListener;
 import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
 import io.siddhi.extension.io.live.utils.Monitor;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
-import org.apache.pulsar.client.api.Consumer;
-import org.apache.pulsar.client.api.Message;
-import org.apache.pulsar.client.api.PulsarClient;
-import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.api.*;
 import org.apache.tapestry5.json.JSONObject;
 
 import java.io.IOException;
@@ -58,6 +55,7 @@ public class StreamThread extends AbstractThread {
             consumer = pulsarClient.newConsumer()
                     .topic(topicOfStream)
                     .subscriptionName(subscriptionNameOfConsumer)
+                    .subscriptionType(SubscriptionType.Shared)
                     .subscribe();
 
         } catch (PulsarClientException e) {

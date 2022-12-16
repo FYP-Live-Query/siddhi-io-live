@@ -52,12 +52,12 @@ public class TestCaseOfLiveSource {
         SiddhiManager siddhiManager = new SiddhiManager();
         siddhiManager.setPersistenceStore(persistenceStore);
 
-      //  String inStreamDefinition0 = "@App:name('TestSiddhiApp0')" +
-      //          "@source(type='live',sql.query='FOR t IN NetworkTrafficTable SORT t.traffic DESC LIMIT 5 RETURN t', " +
-      //          "host.name='api-peamouth-0b57f3c7.paas.macrometa.io'," +
-       //         "api.key = 'Tu_TZ0W2cR92-sr1j-l7ACA.newone.9pej9tihskpx2vYZaxubGW3sFCJLzxe55NRh7T0uk1JMYiRmHdiQsWh5JhRXXT6c418385', " +
-      //          " @map(type='json', fail.on.missing.attribute='false') )" +
-     //           "define stream inputStream (id String,key String,revision String,properties String);";
+        String inStreamDefinition0 = "@App:name('TestSiddhiApp0')" +
+                "@source(type='live',sql.query='FOR t IN NetworkTrafficTable SORT t.traffic DESC LIMIT 5 RETURN t', " +
+                "host.name='api-peamouth-0b57f3c7.paas.macrometa.io'," +
+                "api.key = 'Tu_TZ0W2cR92-sr1j-l7ACA.newone.9pej9tihskpx2vYZaxubGW3sFCJLzxe55NRh7T0uk1JMYiRmHdiQsWh5JhRXXT6c418385', " +
+                " @map(type = 'json',fail.on.missing.attribute = 'false',enclosing.element = '$.properties',@attributes(ip = 'ip')))" +
+                "define stream inputStream (ip string);";
 
 //        String inStreamDefinition0 = "@App:name('TestSiddhiApp0')" +
 //                "@source(type='live',sql.query='FOR t IN NetworkTrafficTable COLLECT browser = t.browser WITH COUNT INTO value RETURN {browser: browser,totalCount: value}', " +
@@ -67,24 +67,24 @@ public class TestCaseOfLiveSource {
 //                "define stream inputStream (id String,key String,revision String,properties String);";
 
 
-        String inStreamDefinition0 = "@app:name('SiddhiApp-dev-test')\n" +
-                "@source(type = 'live',host.name = 'api-peamouth-0b57f3c7.paas.macrometa.io',api.key = 'Tu_TZ0W2cR92-sr1j-l7ACA.newone.9pej9tihskpx2vYZaxubGW3sFCJLzxe55NRh7T0uk1JMYiRmHdiQsWh5JhRXXT6c418385',sql.query = 'SELECT ip FROM NetworkTrafficTable',@map(type = 'json',@attributes(ip = 'ip')))\n" +
-                "define stream NetworkTrafficTableInputStream(ip string);\n" +
-                "@sink(type = 'log')\n" +
-                "define stream NetworkTrafficTableOutputStream(ip string);\n" +
-                "@info(name = 'SQL-SiddhiQL-dev-test')\n" +
-                "from NetworkTrafficTableInputStream\n" +
-                "select  ip  \n" +
-                "insert into NetworkTrafficTableOutputStream;";
+//        String inStreamDefinition0 = "@app:name('SiddhiApp-dev-test')\n" +
+//                "@source(type = 'live',host.name = 'api-peamouth-0b57f3c7.paas.macrometa.io',api.key = 'Tu_TZ0W2cR92-sr1j-l7ACA.newone.9pej9tihskpx2vYZaxubGW3sFCJLzxe55NRh7T0uk1JMYiRmHdiQsWh5JhRXXT6c418385',sql.query = 'SELECT ip FROM NetworkTrafficTable',@map(type = 'json',@attributes(ip = 'ip')))\n" +
+//                "define stream NetworkTrafficTableInputStream(ip string);\n" +
+//                "@sink(type = 'log')\n" +
+//                "define stream NetworkTrafficTableOutputStream(ip string);\n" +
+//                "@info(name = 'SQL-SiddhiQL-dev-test')\n" +
+//                "from NetworkTrafficTableInputStream\n" +
+//                "select  ip  \n" +
+//                "insert into NetworkTrafficTableOutputStream;";
 
-//        String query0 = ("@sink(type = 'log')" +
-//                "define stream OutputStream (id String,key String,revision String,properties String);" +
-//                "@info(name = 'query0') "
-//                + "from inputStream "
-//                + "select * "
-//                + "insert into outputStream;");
+        String query0 = ("@sink(type = 'log')" +
+                "define stream OutputStream (ip string);" +
+                "@info(name = 'query0') "
+                + "from inputStream "
+                + "select * "
+                + "insert into outputStream;");
 
-        SiddhiAppRuntime siddhiAppRuntime0 = siddhiManager.createSiddhiAppRuntime(inStreamDefinition0);
+        SiddhiAppRuntime siddhiAppRuntime0 = siddhiManager.createSiddhiAppRuntime(inStreamDefinition0 + query0);
 
         siddhiAppRuntime0.addCallback("query0", new QueryCallback() {
             @Override
@@ -112,7 +112,8 @@ public class TestCaseOfLiveSource {
                         .addSourceComposite(new KeyValue<>("host.name","api-peamouth-0b57f3c7.paas.macrometa.io"))
                         .addSourceComposite(new KeyValue<>("api.key","Tu_TZ0W2cR92-sr1j-l7ACA.newone.9pej9tihskpx2vYZaxubGW3sFCJLzxe55NRh7T0uk1JMYiRmHdiQsWh5JhRXXT6c418385")),
                 new JsonMap()
-                        .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false")),
+                        .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))
+                        .addMapComposite(new KeyValue<>("enclosing.element","$.properties")),
                 new JsonMapAttributes(),
                 new LogSink(),
                 new QueryInfo().setQueryName("SQL-SiddhiQL-dev-test")
