@@ -48,12 +48,12 @@ public class DBThread extends AbstractThread {
             }
             Gson gson = new Gson();
             String json = gson.toJson(cursor.next());
-            System.out.println("json"+json);
+
             JSONObject jsonObject = new JSONObject(json);
             JSONObject properties = jsonObject.getJSONObject("properties");
             properties.put("initial_data", "true");
             json = jsonObject.toString();
-            System.out.println("new"+json);
+
             sourceEventListener.onEvent(json , null);
         }
     }
