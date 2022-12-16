@@ -14,23 +14,24 @@ import org.apache.pulsar.client.api.PulsarClientException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutionException;
 
 public class StreamThread extends AbstractThread {
     private final IPulsarClientBehavior pulsarClientBehavior;
     private final String topicOfStream;
+    private final Runtime JVMRuntime;
     private final String subscriptionNameOfConsumer;
     private Consumer consumer;
     private final SourceEventListener sourceEventListener;
 
-    public StreamThread(String topicOfStream,
-                        IPulsarClientBehavior pulsarClientBehavior,
-                        String subscriptionNameOfConsumer, Monitor signalMonitor,
+    public StreamThread(String topicOfStream,IPulsarClientBehavior pulsarClientBehavior,String subscriptionNameOfConsumer, Monitor signalMonitor,
                         SourceEventListener sourceEventListener) {
         super(signalMonitor);
         this.topicOfStream = topicOfStream;
         this.subscriptionNameOfConsumer = subscriptionNameOfConsumer;
         this.sourceEventListener = sourceEventListener;
         this.pulsarClientBehavior = pulsarClientBehavior;
+        this.JVMRuntime = Runtime.getRuntime();
     }
 
     private void unsubscribe(){
@@ -43,6 +44,12 @@ public class StreamThread extends AbstractThread {
     }
 
     private void subscribe(){
+        JVMRuntime.addShutdownHook(new Thread(){ // this is simple temp fix. ideal is adding a state for handling unsubscribe when user wants
+            @Override
+            public void run() {
+                unsubscribe();
+            }
+        });
         try {
 
             PulsarClient pulsarClient = pulsarClientBehavior.getPulsarClient();
@@ -79,7 +86,7 @@ public class StreamThread extends AbstractThread {
                 sourceEventListener.onEvent(objectNode.toString(),null);
 
                 String s = new String(msg.getData(), StandardCharsets.UTF_8);
-            } catch (IOException e) {
+            } catch (PulsarClientException e) {
                 e.printStackTrace();
             }
 

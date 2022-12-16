@@ -189,7 +189,7 @@ public class LiveSource extends Source {
         pulsarClientTLSAuth = new PulsarClientTLSAuth(apiKey,serviceURLOfPulsarServer);
 
         consumerThread = new StreamThread(
-                "Tu_TZ0W2cR92-sr1j-l7ACA/c8local._system/NetworkTrafficTable",pulsarClientTLSAuth,"my-subscription",
+                "Tu_TZ0W2cR92-sr1j-l7ACA/c8local._system/NetworkTrafficTable",pulsarClientTLSAuth,"my-subscriptionl",
                                 monitor,sourceEventListener
                 );
 
