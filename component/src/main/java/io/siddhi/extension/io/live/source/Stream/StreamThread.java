@@ -82,12 +82,14 @@ public class StreamThread extends AbstractThread {
                 ObjectNode objectNode = objectMapper.createObjectNode();
 
                 String stringJsonMsg = new String(msg.getData(), StandardCharsets.UTF_8);
-                objectNode.put("properties",stringJsonMsg);
+                JSONObject jsonObject = new JSONObject(stringJsonMsg);
+//                JSONObject properties = jsonObject.getJSONObject("properties");
+                jsonObject.put("initial_data", "false");
+                objectNode.put("properties",jsonObject.toString());
+                String str = objectNode.toString();
+//                System.out.println("stream_test1"+stringJsonMsg);
                 System.out.println("stream_test"+objectNode.toString());
-                JSONObject jsonObject = new JSONObject(objectNode.toString());
-                JSONObject properties = jsonObject.getJSONObject("properties");
-                properties.put("initial_data", "false");
-                String str = jsonObject.toString();
+
                 sourceEventListener.onEvent(str,null);
 
                 String s = new String(msg.getData(), StandardCharsets.UTF_8);
