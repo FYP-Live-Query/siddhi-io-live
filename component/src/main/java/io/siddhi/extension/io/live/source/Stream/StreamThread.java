@@ -21,6 +21,7 @@ public class StreamThread extends AbstractThread {
     private final String subscriptionNameOfConsumer;
     private Consumer consumer;
     private final SourceEventListener sourceEventListener;
+    private Reader<byte[]> reader;
 
     public StreamThread(String topicOfStream,IPulsarClientBehavior pulsarClientBehavior,String subscriptionNameOfConsumer, Monitor signalMonitor,
                         SourceEventListener sourceEventListener) {
@@ -34,9 +35,9 @@ public class StreamThread extends AbstractThread {
 
     private void unsubscribe(){
         try {
-            consumer.unsubscribe();
+            reader.close();
             System.out.println("consumer unsubscribed to the stream");
-        } catch (PulsarClientException ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
@@ -51,12 +52,11 @@ public class StreamThread extends AbstractThread {
         try {
 
             PulsarClient pulsarClient = pulsarClientBehavior.getPulsarClient();
-
-            consumer = pulsarClient.newConsumer()
+            // Create a reader on a topic and for a specific message (and onward)
+            reader = pulsarClient.newReader()
                     .topic(topicOfStream)
-                    .subscriptionName(subscriptionNameOfConsumer)
-                    .subscriptionType(SubscriptionType.Shared)
-                    .subscribe();
+                    .startMessageId(MessageId.latest)
+                    .create();
 
         } catch (PulsarClientException e) {
             e.printStackTrace();
@@ -74,7 +74,7 @@ public class StreamThread extends AbstractThread {
                     System.out.println("paused - stream thread");
                     doPause();
                 }
-                msg = consumer.receive();
+                msg = reader.readNext();
                 JSONObject obj = new JSONObject();
                 String stringJsonMsg = new String(msg.getData(), StandardCharsets.UTF_8);
                 JSONObject jsonObject = new JSONObject(stringJsonMsg);
@@ -87,13 +87,7 @@ public class StreamThread extends AbstractThread {
             } catch (PulsarClientException e) {
                 e.printStackTrace();
             }
-
-            try {
-                consumer.acknowledge(msg);
-            } catch (PulsarClientException e) {
-                consumer.negativeAcknowledge(msg);
-                e.printStackTrace();
-            }
+            
         }
 
         // clean exit if thread is stopped
