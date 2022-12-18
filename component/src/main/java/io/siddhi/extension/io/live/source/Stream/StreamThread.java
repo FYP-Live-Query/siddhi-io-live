@@ -21,7 +21,7 @@ public class StreamThread extends AbstractThread {
     private final String subscriptionNameOfConsumer;
     private Consumer consumer;
     private final SourceEventListener sourceEventListener;
-    Reader<byte[]> reader;
+    private Reader<byte[]> reader;
 
     public StreamThread(String topicOfStream,IPulsarClientBehavior pulsarClientBehavior,String subscriptionNameOfConsumer, Monitor signalMonitor,
                         SourceEventListener sourceEventListener) {
@@ -35,9 +35,9 @@ public class StreamThread extends AbstractThread {
 
     private void unsubscribe(){
         try {
-            consumer.unsubscribe();
+            reader.close();
             System.out.println("consumer unsubscribed to the stream");
-        } catch (PulsarClientException ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
@@ -87,13 +87,7 @@ public class StreamThread extends AbstractThread {
             } catch (PulsarClientException e) {
                 e.printStackTrace();
             }
-
-//            try {
-////                consumer.acknowledge(msg);
-//            } catch (PulsarClientException e) {
-////                consumer.negativeAcknowledge(msg);
-//                e.printStackTrace();
-//            }
+            
         }
 
         // clean exit if thread is stopped
