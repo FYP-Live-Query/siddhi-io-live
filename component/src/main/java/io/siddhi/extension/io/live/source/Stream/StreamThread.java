@@ -67,7 +67,6 @@ public class StreamThread extends AbstractThread {
     public void run() {
 
         subscribe();
-        ObjectMapper objectMapper = new ObjectMapper();
         while(isThreadRunning){
             Message msg = null;
             try {
@@ -76,18 +75,12 @@ public class StreamThread extends AbstractThread {
                     doPause();
                 }
                 msg = consumer.receive();
-
-                ObjectNode objectNode = objectMapper.createObjectNode();
-
+                JSONObject obj = new JSONObject();
                 String stringJsonMsg = new String(msg.getData(), StandardCharsets.UTF_8);
                 JSONObject jsonObject = new JSONObject(stringJsonMsg);
-//                JSONObject properties = jsonObject.getJSONObject("properties");
                 jsonObject.put("initial_data", "false");
-                objectNode.put("properties",jsonObject.toString());
-                String str = objectNode.toString();
-//                System.out.println("stream_test1"+stringJsonMsg);
-                System.out.println("stream_test"+objectNode.toString());
-
+                obj.put("properties", jsonObject);
+                String str = obj.toString();
                 sourceEventListener.onEvent(str,null);
 
                 String s = new String(msg.getData(), StandardCharsets.UTF_8);

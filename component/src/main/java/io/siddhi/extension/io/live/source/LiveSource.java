@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * This is a sample class-level comment, explaining what the extension class does.
