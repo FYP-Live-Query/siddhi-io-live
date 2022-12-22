@@ -1,0 +1,57 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1671358551196
+Build-Jdk: 11.0.11
+Built-By: Mahesh
+Bundle-Contributors: WSO2 Inc
+Bundle-Copyright: WSO2 Inc
+Bundle-Description: Siddhi, Stream Processing and Complex Event Processi
+ ng Engine
+Bundle-Developers: WSO2 Inc
+Bundle-DocURL: https://docs.wso2.com
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: siddhi-io-live
+Bundle-SymbolicName: siddhi-io-live
+Bundle-Vendor: WSO2 Inc
+Bundle-Version: 1.0.0.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+DynamicImport-Package: *
+Export-Package: io.siddhi.extension.io.live.sink;uses:="io.siddhi.annota
+ tion,io.siddhi.core.config,io.siddhi.core.exception,io.siddhi.core.stre
+ am,io.siddhi.core.stream.output.sink,io.siddhi.core.util.config,io.sidd
+ hi.core.util.snapshot.state,io.siddhi.core.util.transport,io.siddhi.que
+ ry.api.definition";version="1.0.0",io.siddhi.extension.io.live.source;u
+ ses:="io.siddhi.annotation,io.siddhi.annotation.util,io.siddhi.core.con
+ fig,io.siddhi.core.exception,io.siddhi.core.stream,io.siddhi.core.strea
+ m.input.source,io.siddhi.core.util.config,io.siddhi.core.util.snapshot.
+ state,io.siddhi.core.util.transport,io.siddhi.extension.io.live.source.
+ Thread,io.siddhi.extension.io.live.utils";version="1.0.0",io.siddhi.ext
+ ension.io.live.source.Stream;uses:="io.siddhi.core.stream.input.source,
+ io.siddhi.extension.io.live.source.Stream.PulsarClient,io.siddhi.extens
+ ion.io.live.source.Thread,io.siddhi.extension.io.live.utils";version="1
+ .0.0",io.siddhi.extension.io.live.source.Stream.PulsarClient;uses:="org
+ .apache.pulsar.client.api";version="1.0.0",io.siddhi.extension.io.live.
+ source.Thread;uses:="io.siddhi.extension.io.live.utils";version="1.0.0"
+ ,io.siddhi.extension.io.live.utils;version="1.0.0"
+Import-Package: com.c8db;resolution:=optional,com.c8db.entity;resolution
+ :=optional,com.c8db.model;resolution:=optional,com.google.gson;resoluti
+ on:=optional;version="[2.9,3)",io.siddhi.annotation;resolution:=optiona
+ l;version="[5.0,6)",io.siddhi.annotation.util;resolution:=optional;vers
+ ion="[5.0,6)",io.siddhi.core.config;resolution:=optional;version="[5.0,
+ 6)",io.siddhi.core.exception;resolution:=optional;version="[5.0,6)",io.
+ siddhi.core.stream;resolution:=optional;version="[5.0,6)",io.siddhi.cor
+ e.stream.input.source;resolution:=optional;version="[5.0,6)",io.siddhi.
+ core.stream.output.sink;resolution:=optional;version="[5.0,6)",io.siddh
+ i.core.util.config;resolution:=optional;version="[5.0,6)",io.siddhi.cor
+ e.util.snapshot.state;resolution:=optional;version="[5.0,6)",io.siddhi.
+ core.util.transport;resolution:=optional;version="[5.0,6)",io.siddhi.ex
+ tension.io.live.source.Stream;resolution:=optional,io.siddhi.extension.
+ io.live.source.Stream.PulsarClient;resolution:=optional,io.siddhi.exten
+ sion.io.live.source.Thread;resolution:=optional,io.siddhi.extension.io.
+ live.utils;resolution:=optional,io.siddhi.query.api.definition;resoluti
+ on:=optional;version="[5.0,6)",org.apache.log4j;resolution:=optional;ve
+ rsion="[1.2,2)",org.apache.pulsar.client.api;resolution:=optional,org.a
+ pache.tapestry5.json;resolution:=optional;version="[5.4,6)"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+SCM-Revision: 1a7a26c325e7b408db44589872a18a7391f6b022
+Tool: Bnd-3.2.0.201605172007

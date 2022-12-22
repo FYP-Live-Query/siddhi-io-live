@@ -102,7 +102,7 @@
         <dependency>
             <groupId>com.c8db</groupId>
             <artifactId>c8db</artifactId>
-            <version>88.88.88</version>
+            <version>1.1.25.2</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/src/main/resources/c84j-1.1.25.2-SNAPSHOT.jar</systemPath>
         </dependency>
