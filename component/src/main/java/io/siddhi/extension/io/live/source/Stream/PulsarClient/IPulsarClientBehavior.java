@@ -4,7 +4,7 @@ import io.siddhi.extension.io.live.source.Stream.IStreamingEngine;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 
-public interface IPulsarClientBehavior extends IStreamingEngine {
+public interface IPulsarClientBehavior extends IStreamingEngine<String> {
 
     PulsarClient getPulsarClient() throws PulsarClientException;
 }
