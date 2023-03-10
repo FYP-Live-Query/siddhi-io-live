@@ -1,45 +1,30 @@
 package io.siddhi.extension.io.live.source.Stream;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.siddhi.core.stream.input.source.SourceEventListener;
-import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
 import io.siddhi.extension.io.live.utils.Monitor;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
-import org.apache.pulsar.client.api.*;
-import org.apache.tapestry5.json.JSONObject;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class StreamThread extends AbstractThread {
-    private final IPulsarClientBehavior pulsarClientBehavior;
+    private final static Logger LOGGER = Logger.getGlobal();
+    private final IStreamingEngine<String> IStreamingEngine;
     private final String topicOfStream;
     private final Runtime JVMRuntime;
-    private final String subscriptionNameOfConsumer;
-    private Consumer consumer;
     private final SourceEventListener sourceEventListener;
-    private Reader<byte[]> reader;
 
-    public StreamThread(String topicOfStream,IPulsarClientBehavior pulsarClientBehavior,String subscriptionNameOfConsumer, Monitor signalMonitor,
+    public StreamThread(String topicOfStream,IStreamingEngine<String> iStreamingEngine, Monitor signalMonitor,
                         SourceEventListener sourceEventListener) {
         super(signalMonitor);
         this.topicOfStream = topicOfStream;
-        this.subscriptionNameOfConsumer = subscriptionNameOfConsumer;
         this.sourceEventListener = sourceEventListener;
-        this.pulsarClientBehavior = pulsarClientBehavior;
+        this.IStreamingEngine = iStreamingEngine;
         this.JVMRuntime = Runtime.getRuntime();
     }
 
     private void unsubscribe(){
-        try {
-            reader.close();
-            System.out.println("consumer unsubscribed to the stream");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        IStreamingEngine.unsubscribe();
     }
 
     private void subscribe(){
@@ -49,44 +34,22 @@ public class StreamThread extends AbstractThread {
                 unsubscribe();
             }
         });
-        try {
-
-            PulsarClient pulsarClient = pulsarClientBehavior.getPulsarClient();
-            // Create a reader on a topic and for a specific message (and onward)
-            reader = pulsarClient.newReader()
-                    .topic(topicOfStream)
-                    .startMessageId(MessageId.latest)
-                    .create();
-
-        } catch (PulsarClientException e) {
-            e.printStackTrace();
-        }
+        IStreamingEngine.subscribe(topicOfStream);
     }
 
     @Override
     public void run() {
-
         subscribe();
         while(isThreadRunning){
-            Message msg = null;
-            try {
-                if(isPaused) {
-                    System.out.println("paused - stream thread");
-                    doPause();
-                }
-                msg = reader.readNext();
-                JSONObject obj = new JSONObject();
-                String stringJsonMsg = new String(msg.getData(), StandardCharsets.UTF_8);
-                JSONObject jsonObject = new JSONObject(stringJsonMsg);
-                jsonObject.put("initial_data", "false");
-                obj.put("properties", jsonObject);
-                String str = obj.toString();
-                sourceEventListener.onEvent(str,null);
 
-                String s = new String(msg.getData(), StandardCharsets.UTF_8);
-            } catch (PulsarClientException e) {
-                e.printStackTrace();
+            if(isPaused) {
+                LOGGER.log(Level.INFO,"paused - stream thread");
+                doPause();
             }
+
+            IStreamingEngine.consumeMessage((str)->{
+                sourceEventListener.onEvent(str,null);
+            });
             
         }
 

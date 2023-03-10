@@ -190,7 +190,6 @@ public class LiveSource extends Source {
         consumerThread = new StreamThread(
                 "Tu_TZ0W2cR92-sr1j-l7ACA/c8local._system/c8locals.OutputStream",
                 pulsarClientTLSAuth,
-                "subscription-dev",
                 monitor,sourceEventListener
                 );
 
