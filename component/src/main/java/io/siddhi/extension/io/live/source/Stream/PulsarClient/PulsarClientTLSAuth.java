@@ -24,4 +24,9 @@ public class PulsarClientTLSAuth implements IPulsarClientBehavior {
 
         return pulsarClient;
     }
+
+    @Override
+    public void consumeMessage() {
+        throw new UnsupportedOperationException("still on implementation");
+    }
 }
