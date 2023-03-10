@@ -109,9 +109,14 @@
         <dependency>
             <groupId>SQLtoSiddhiQL</groupId>
             <artifactId>SQLtoSiddhiQL</artifactId>
-            <version>0.8.0</version>
+            <version>0.8.6</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/SQLtoSiddhiQL-0.8.0-SNAPSHOT.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/sqltosiddhiql-0.8.6-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>3.4.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.jsqlparser</groupId>
