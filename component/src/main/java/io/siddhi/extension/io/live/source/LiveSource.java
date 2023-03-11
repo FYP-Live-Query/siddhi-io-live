@@ -1,6 +1,7 @@
 package io.siddhi.extension.io.live.source;
 
 
+import io.siddhi.extension.io.live.source.Stream.KafkaClient.KafkaConsumerClient;
 import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
 import io.siddhi.extension.io.live.source.Stream.PulsarClient.PulsarClientTLSAuth;
 import io.siddhi.extension.io.live.source.Stream.StreamThread;
@@ -20,6 +21,8 @@ import io.siddhi.core.util.transport.OptionHolder;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
 import io.siddhi.extension.io.live.utils.Monitor;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.UUIDDeserializer;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -119,7 +122,6 @@ public class LiveSource extends Source {
     private String apiKey;
     protected SourceEventListener sourceEventListener;
     protected String[] requestedTransportPropertyNames;
-    private Monitor monitor;
     private StreamThread consumerThread;
     private IPulsarClientBehavior pulsarClientTLSAuth;
     private String serviceURLOfPulsarServer = "pulsar+ssl://%s:6651";
@@ -149,7 +151,6 @@ public class LiveSource extends Source {
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
             this.serviceURLOfPulsarServer = String.format(serviceURLOfPulsarServer,hostName);
-            this.monitor  = new Monitor();
         return null;
     }
 
@@ -185,15 +186,27 @@ public class LiveSource extends Source {
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
         // TODO : give a unique subscription name
-        pulsarClientTLSAuth = new PulsarClientTLSAuth(apiKey,serviceURLOfPulsarServer);
+        pulsarClientTLSAuth = PulsarClientTLSAuth.builder()
+                .gdnAPIToken(apiKey)
+                .serviceUrlOfPulsarServer(serviceURLOfPulsarServer)
+                .build();
 
-        consumerThread = new StreamThread(
-                "Tu_TZ0W2cR92-sr1j-l7ACA/c8local._system/c8locals.OutputStream",
-                pulsarClientTLSAuth,
-                monitor,sourceEventListener
-                );
+        KafkaConsumerClient<UUID,String> kafkaConsumerClient = KafkaConsumerClient.<UUID,String>builder()
+                .bootstrap_server_config("localhost:9092")
+                .key_deserializer_class_config(UUIDDeserializer.class)
+                .value_deserializer_class_config(StringDeserializer.class)
+                .group_id_config("mahesh-99")
+                .client_id_config("mahesh-88")
+                .topic("test-topic")
+                .build();
 
-        AbstractThread dbThread = new DBThread(monitor,sourceEventListener,hostName,apiKey,"root",selectQuery);
+        consumerThread = StreamThread.builder()
+                .topicOfStream("Tu_TZ0W2cR92-sr1j-l7ACA/c8local._system/c8locals.OutputStream")
+                .sourceEventListener(sourceEventListener)
+                .IStreamingEngine(kafkaConsumerClient)
+                .build();
+
+        AbstractThread dbThread = new DBThread(sourceEventListener,hostName,apiKey,"root",selectQuery);
 
         Thread threadCon = new Thread(consumerThread, "streaming thread");
         Thread threadDB = new Thread(dbThread, "Initial database thread");
