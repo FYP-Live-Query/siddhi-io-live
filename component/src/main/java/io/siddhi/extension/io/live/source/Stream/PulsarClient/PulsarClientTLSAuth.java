@@ -1,5 +1,7 @@
 package io.siddhi.extension.io.live.source.Stream.PulsarClient;
 
+import lombok.Builder;
+import lombok.NonNull;
 import org.apache.pulsar.client.api.*;
 import org.apache.tapestry5.json.JSONObject;
 
@@ -8,16 +10,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@Builder
 public class PulsarClientTLSAuth implements IPulsarClientBehavior {
     private final static Logger LOGGER = Logger.getGlobal();
-    private final String gdnAPIToken;
-    private final String serviceUrlOfPulsarServer;
+    private String gdnAPIToken;
+    private String serviceUrlOfPulsarServer;
     private Reader<byte[]> reader;
-
-    public PulsarClientTLSAuth(String gdnAPIToken, String serviceUrlOfPulsarServer) {
-        this.gdnAPIToken = gdnAPIToken;
-        this.serviceUrlOfPulsarServer = serviceUrlOfPulsarServer;
-    }
 
     @Override
     public PulsarClient getPulsarClient() throws PulsarClientException {
@@ -29,11 +27,11 @@ public class PulsarClientTLSAuth implements IPulsarClientBehavior {
     }
 
     @Override
-    public void consumeMessage(java.util.function.Consumer<String> consumer) {
-        Message msg = null;
+    public void consumeMessage(@NonNull java.util.function.Consumer<String> consumer) {
+        Message msg;
         try {
             msg = reader.readNext();
-
+            // TODO :  this should encapsulate (duplicate code)
             JSONObject obj = new JSONObject();
             String stringJsonMsg = new String(msg.getData(), StandardCharsets.UTF_8);
             JSONObject jsonObject = new JSONObject(stringJsonMsg);
@@ -50,8 +48,8 @@ public class PulsarClientTLSAuth implements IPulsarClientBehavior {
     }
 
     @Override
-    public void subscribe(String topicOfStream) {
-        PulsarClient pulsarClient = null;
+    public void subscribe(@NonNull String topicOfStream) {
+        PulsarClient pulsarClient;
         // Create a reader on a topic and for a specific message (and onward)
         try {
             pulsarClient = this.getPulsarClient();
