@@ -18,8 +18,7 @@ public class DBThread extends AbstractThread {
     private String user = "root";
     private String selectSQL;
 
-    public DBThread(Monitor interThreadSignalMonitor, SourceEventListener sourceEventListener, String hostName, String apiKey, String user, String selectSQL) {
-        super(interThreadSignalMonitor);
+    public DBThread(SourceEventListener sourceEventListener, String hostName, String apiKey, String user, String selectSQL) {
         this.sourceEventListener = sourceEventListener;
         this.hostName = hostName;
         this.apiKey = apiKey;
@@ -27,8 +26,7 @@ public class DBThread extends AbstractThread {
         this.selectSQL = selectSQL;
     }
 
-    public DBThread(Monitor interThreadSignalMonitor, SourceEventListener sourceEventListener, String hostName, String apiKey, String selectSQL) {
-        super(interThreadSignalMonitor);
+    public DBThread( SourceEventListener sourceEventListener, String hostName, String apiKey, String selectSQL) {
         this.sourceEventListener = sourceEventListener;
         this.hostName = hostName;
         this.apiKey = apiKey;
