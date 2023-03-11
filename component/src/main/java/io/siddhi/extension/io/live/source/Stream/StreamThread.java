@@ -3,25 +3,20 @@ package io.siddhi.extension.io.live.source.Stream;
 import io.siddhi.core.stream.input.source.SourceEventListener;
 import io.siddhi.extension.io.live.utils.Monitor;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
+import lombok.AccessLevel;
+import lombok.Builder;
 
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@Builder
 public class StreamThread extends AbstractThread {
     private final static Logger LOGGER = Logger.getGlobal();
-    private final IStreamingEngine<String> IStreamingEngine;
-    private final String topicOfStream;
-    private final Runtime JVMRuntime;
-    private final SourceEventListener sourceEventListener;
-
-    public StreamThread(String topicOfStream,IStreamingEngine<String> iStreamingEngine, Monitor signalMonitor,
-                        SourceEventListener sourceEventListener) {
-        super(signalMonitor);
-        this.topicOfStream = topicOfStream;
-        this.sourceEventListener = sourceEventListener;
-        this.IStreamingEngine = iStreamingEngine;
-        this.JVMRuntime = Runtime.getRuntime();
-    }
+    private IStreamingEngine<String> IStreamingEngine;
+    private String topicOfStream;
+    @Builder.Default private final Runtime JVMRuntime = Runtime.getRuntime();;
+    private SourceEventListener sourceEventListener;
 
     private void unsubscribe(){
         IStreamingEngine.unsubscribe();
@@ -31,7 +26,7 @@ public class StreamThread extends AbstractThread {
         JVMRuntime.addShutdownHook(new Thread(){ // this is simple temp fix. ideal is adding a state for handling unsubscribe when user wants
             @Override
             public void run() {
-                unsubscribe();
+                isThreadRunning = false;
             }
         });
         IStreamingEngine.subscribe(topicOfStream);
@@ -47,9 +42,11 @@ public class StreamThread extends AbstractThread {
                 doPause();
             }
 
-            IStreamingEngine.consumeMessage((str)->{
+            Consumer<String> sourceEventListenerSiddhi = (str)->{
                 sourceEventListener.onEvent(str,null);
-            });
+            };
+
+            IStreamingEngine.consumeMessage(sourceEventListenerSiddhi);
             
         }
 
