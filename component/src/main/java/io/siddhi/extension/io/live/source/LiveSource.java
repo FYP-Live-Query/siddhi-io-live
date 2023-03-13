@@ -195,8 +195,8 @@ public class LiveSource extends Source {
                 .bootstrap_server_config(hostName)
                 .key_deserializer_class_config(StringDeserializer.class)
                 .value_deserializer_class_config(StringDeserializer.class)
-                .group_id_config("mahesh-99")
-                .client_id_config("mahesh-88")
+                .group_id_config("siddhi-io-live-group-99")
+                .client_id_config("siddhi-io-live-group-client-88")
                 .topic("dbserver1.inventory.customers") // should add table name
                 .build();
 
