@@ -26,7 +26,7 @@ public class StreamThread extends AbstractThread {
         JVMRuntime.addShutdownHook(new Thread(){ // this is simple temp fix. ideal is adding a state for handling unsubscribe when user wants
             @Override
             public void run() {
-                isThreadRunning = false;
+                unsubscribe();
             }
         });
         IStreamingEngine.subscribe(topicOfStream);
@@ -42,8 +42,8 @@ public class StreamThread extends AbstractThread {
                 doPause();
             }
 
-            Consumer<String> sourceEventListenerSiddhi = (str)->{
-                sourceEventListener.onEvent(str,null);
+            Consumer<String> sourceEventListenerSiddhi = (msg)->{
+                sourceEventListener.onEvent(msg,null);
             };
 
             IStreamingEngine.consumeMessage(sourceEventListenerSiddhi);
