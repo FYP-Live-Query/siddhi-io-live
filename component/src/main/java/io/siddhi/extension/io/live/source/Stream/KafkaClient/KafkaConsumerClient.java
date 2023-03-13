@@ -28,15 +28,19 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
 
     @Override
     public void consumeMessage(java.util.function.Consumer<ValueType> consumer) {
-        ConsumerRecords<KeyType, ValueType> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(100));
+        ConsumerRecords<KeyType, ValueType> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(1000));
         for (ConsumerRecord<KeyType, ValueType> consumerRecord : consumerRecords) {
-            // TODO :  this should encapsulate (duplicate code)
-            JSONObject obj = new JSONObject();
-            String stringJsonMsg = consumerRecord.value().toString();
-            JSONObject jsonObject = new JSONObject(stringJsonMsg);
 
-            jsonObject.put("initial_data", "false"); // as required by the backend processing
-            obj.put("properties", jsonObject); // all user required data for siddhi processing inside properties section in JSON object
+            // TODO :  this should encapsulate (duplicate code)
+            String stringJsonMsg = consumerRecord.value().toString();
+
+            JSONObject jsonObject = new JSONObject(stringJsonMsg);
+            JSONObject newValue = (JSONObject) ((JSONObject) jsonObject.get("payload")).get("after");
+
+            newValue.put("initial_data", "false"); // as required by the backend processing
+
+            JSONObject obj = new JSONObject();
+            obj.put("properties", newValue); // all user required data for siddhi processing inside properties section in JSON object
             String strMsg = obj.toString();
 
             consumer.accept((ValueType) strMsg); // The Java Consumer interface is a functional interface that represents an function that consumes a value without returning any value.
