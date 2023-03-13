@@ -191,13 +191,13 @@ public class LiveSource extends Source {
                 .serviceUrlOfPulsarServer(serviceURLOfPulsarServer)
                 .build();
 
-        KafkaConsumerClient<UUID,String> kafkaConsumerClient = KafkaConsumerClient.<UUID,String>builder()
-                .bootstrap_server_config("localhost:9092")
-                .key_deserializer_class_config(UUIDDeserializer.class)
+        KafkaConsumerClient<String,String> kafkaConsumerClient = KafkaConsumerClient.<String,String>builder()
+                .bootstrap_server_config(hostName)
+                .key_deserializer_class_config(StringDeserializer.class)
                 .value_deserializer_class_config(StringDeserializer.class)
                 .group_id_config("mahesh-99")
                 .client_id_config("mahesh-88")
-                .topic("test-topic")
+                .topic("dbserver1.inventory.customers") // should add table name
                 .build();
 
         consumerThread = StreamThread.builder()
