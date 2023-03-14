@@ -107,11 +107,11 @@
             <systemPath>${project.basedir}/src/main/resources/c84j-1.1.25.2-SNAPSHOT.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>SQLtoSiddhiQL</groupId>
+            <groupId>org.SQLtoSiddhiQL</groupId>
             <artifactId>SQLtoSiddhiQL</artifactId>
-            <version>0.8.6</version>
+            <version>0.9.7</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/sqltosiddhiql-0.8.6-SNAPSHOT.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/sqltosiddhiql-0.9.7-SNAPSHOT.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
