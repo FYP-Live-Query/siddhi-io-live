@@ -1,9 +1,7 @@
 package io.siddhi.extension.io.live.source.Stream;
 
 import io.siddhi.core.stream.input.source.SourceEventListener;
-import io.siddhi.extension.io.live.utils.Monitor;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
-import lombok.AccessLevel;
 import lombok.Builder;
 
 import java.util.function.Consumer;
@@ -22,19 +20,32 @@ public class StreamThread extends AbstractThread {
         IStreamingEngine.unsubscribe();
     }
 
+    private void shutdown(){
+        this.threadState.stop(); // since while shutting down , still thread may wait for message, so thread should be stopped to exit from while loop
+        this.unsubscribe();
+    }
+
     private void subscribe(){
-        JVMRuntime.addShutdownHook(new Thread(){ // this is simple temp fix. ideal is adding a state for handling unsubscribe when user wants
+        // this is simple temp fix. ideal is adding a state for handling unsubscribe when user wants
+        JVMRuntime.addShutdownHook(new Thread() {
             @Override
             public void run() {
-                unsubscribe();
+                shutdown(); // to handle process interruptions eg. ctrl+c
             }
         });
+
         IStreamingEngine.subscribe(topicOfStream);
     }
 
     @Override
     public void run() {
-        subscribe();
+
+        this.subscribe();
+
+        Consumer<String> sourceEventListenerSiddhi = (msg)->{
+            sourceEventListener.onEvent(msg,null);
+        };
+
         while(isThreadRunning){
 
             if(isPaused) {
@@ -42,15 +53,11 @@ public class StreamThread extends AbstractThread {
                 doPause();
             }
 
-            Consumer<String> sourceEventListenerSiddhi = (msg)->{
-                sourceEventListener.onEvent(msg,null);
-            };
-
             IStreamingEngine.consumeMessage(sourceEventListenerSiddhi);
             
         }
 
         // clean exit if thread is stopped
-        unsubscribe();
+        this.unsubscribe();
     }
 }
