@@ -2,17 +2,14 @@ package io.siddhi.extension.io.live.source.Stream.KafkaClient;
 
 import io.siddhi.extension.io.live.source.Stream.IStreamingEngine;
 import lombok.Builder;
-import lombok.NonNull;
 import org.apache.kafka.clients.consumer.*;
-import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.UUIDDeserializer;
+import org.apache.kafka.common.errors.WakeupException;
 import org.apache.tapestry5.json.JSONObject;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Builder
 public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<ValueType> {
@@ -24,28 +21,39 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
     private String group_id_config;
     private String client_id_config;
     private String topic;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
+
+    private final Object lock = new Object();
 
 
     @Override
     public void consumeMessage(java.util.function.Consumer<ValueType> consumer) {
-        ConsumerRecords<KeyType, ValueType> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(1000));
-        for (ConsumerRecord<KeyType, ValueType> consumerRecord : consumerRecords) {
+        synchronized(lock) {
+            try{
+                ConsumerRecords<KeyType, ValueType> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(1000));
+                for (ConsumerRecord<KeyType, ValueType> consumerRecord : consumerRecords) {
 
-            // TODO :  this should encapsulate (duplicate code)
-            String stringJsonMsg = consumerRecord.value().toString();
+                    // TODO :  this should encapsulate (duplicate code)
+                    String stringJsonMsg = consumerRecord.value().toString();
 
-            JSONObject jsonObject = new JSONObject(stringJsonMsg);
-            JSONObject newValue = (JSONObject) ((JSONObject) jsonObject.get("payload")).get("after");
+                    JSONObject jsonObject = new JSONObject(stringJsonMsg);
+                    JSONObject newValue = (JSONObject) ((JSONObject) jsonObject.get("payload")).get("after");
 
-            newValue.put("initial_data", "false"); // as required by the backend processing
+                    newValue.put("initial_data", "false"); // as required by the backend processing
 
-            JSONObject obj = new JSONObject();
-            obj.put("properties", newValue); // all user required data for siddhi processing inside properties section in JSON object
-            String strMsg = obj.toString();
+                    JSONObject obj = new JSONObject();
+                    obj.put("properties", newValue); // all user required data for siddhi processing inside properties section in JSON object
+                    String strMsg = obj.toString();
 
-            consumer.accept((ValueType) strMsg); // The Java Consumer interface is a functional interface that represents an function that consumes a value without returning any value.
+                    consumer.accept((ValueType) strMsg); // The Java Consumer interface is a functional interface that represents an function that consumes a value without returning any value.
+                }
+                kafkaConsumer.commitSync();
+            } catch (WakeupException e){
+                if(!closed.get()) {
+                    throw e;
+                }
+            }
         }
-        kafkaConsumer.commitSync();
     }
 
     private void initiateKafkaConsumer(){
@@ -63,14 +71,31 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
     @Override
     public void subscribe(String topicOfStream) {
         // subscribe to topic
-        if(this.kafkaConsumer == null){
-            this.initiateKafkaConsumer();
+        synchronized (lock) {
+            closed.set(false);
+            if (this.kafkaConsumer == null) {
+                this.initiateKafkaConsumer();
+            }
+            kafkaConsumer.subscribe(Collections.singleton(topic));
         }
-        kafkaConsumer.subscribe(Collections.singleton(topic));
     }
 
     @Override
-    public synchronized void unsubscribe() {
-        kafkaConsumer.unsubscribe();
+    public void unsubscribe() {
+        interruptWaiting(); // interrupts waiting for kafka message
+        synchronized (lock) {
+            if (kafkaConsumer == null || closed.get()) {
+                return;
+            }
+            kafkaConsumer.unsubscribe();
+        }
+    }
+
+    private void interruptWaiting() {
+        if(closed.get()){
+            return; // kafka consumer already waked up to close the subscription
+        }
+        closed.set(true);
+        kafkaConsumer.wakeup(); // interrupts if thread is waiting for message
     }
 }
