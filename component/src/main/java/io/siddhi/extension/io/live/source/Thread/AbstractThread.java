@@ -5,11 +5,10 @@ import io.siddhi.extension.io.live.utils.Monitor;
 public abstract class AbstractThread implements Runnable {
     protected final Monitor pauseMonitor;
     protected volatile boolean isThreadRunning = true;
-    protected boolean isPaused;
+    protected volatile boolean isPaused = false;
     protected ThreadState threadState = new RunningThreadState(this);
 
     public AbstractThread(){
-        this.isPaused = false;
         this.pauseMonitor = new Monitor();
     }
 
