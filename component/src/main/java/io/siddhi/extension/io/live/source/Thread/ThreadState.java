@@ -8,8 +8,16 @@ public abstract class ThreadState {
         this.thread = thread;
     }
 
-    public abstract void stop();
-    public abstract void pause();
-    public abstract void resume();
+    public void stop() {
+        throw new UnsupportedOperationException("method not implemented in this state");
+    }
+
+    public  void pause(){
+        throw new UnsupportedOperationException("method not implemented in this state");
+    };
+
+    public  void resume(){
+        throw new UnsupportedOperationException("method not implemented in this state");
+    };
 
 }
