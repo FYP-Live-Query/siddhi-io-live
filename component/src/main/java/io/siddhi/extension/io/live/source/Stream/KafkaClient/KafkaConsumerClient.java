@@ -21,7 +21,7 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
     private String group_id_config;
     private String client_id_config;
     private String topic;
-    private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final AtomicBoolean waitingInterrupted = new AtomicBoolean(false);
 
     private final Object lock = new Object();
 
@@ -49,7 +49,7 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
                 }
                 kafkaConsumer.commitSync();
             } catch (WakeupException e){
-                if(!closed.get()) {
+                if(!waitingInterrupted.get()) {
                     throw e;
                 }
             }
@@ -72,7 +72,7 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
     public void subscribe(String topicOfStream) {
         // subscribe to topic
         synchronized (lock) {
-            closed.set(false);
+            waitingInterrupted.set(false);
             if (this.kafkaConsumer == null) {
                 this.initiateKafkaConsumer();
             }
@@ -84,7 +84,7 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
     public void unsubscribe() {
         interruptWaiting(); // interrupts waiting for kafka message
         synchronized (lock) {
-            if (kafkaConsumer == null || closed.get()) {
+            if (kafkaConsumer == null || !waitingInterrupted.get()) {
                 return;
             }
             kafkaConsumer.unsubscribe();
@@ -92,10 +92,10 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
     }
 
     private void interruptWaiting() {
-        if(closed.get()){
+        if(waitingInterrupted.get()){
             return; // kafka consumer already waked up to close the subscription
         }
-        closed.set(true);
+        waitingInterrupted.set(true);
         kafkaConsumer.wakeup(); // interrupts if thread is waiting for message
     }
 }
