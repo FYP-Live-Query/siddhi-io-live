@@ -8,8 +8,10 @@ import io.siddhi.core.stream.input.source.SourceEventListener;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import io.siddhi.extension.io.live.utils.Monitor;
 //import net.minidev.json.JSONObject;
+import lombok.Builder;
 import org.apache.tapestry5.json.JSONObject;
 
+@Builder
 public class DBThread extends AbstractThread {
     private final SourceEventListener sourceEventListener;
     private String hostName;
@@ -17,21 +19,6 @@ public class DBThread extends AbstractThread {
     private String apiKey;
     private String user = "root";
     private String selectSQL;
-
-    public DBThread(SourceEventListener sourceEventListener, String hostName, String apiKey, String user, String selectSQL) {
-        this.sourceEventListener = sourceEventListener;
-        this.hostName = hostName;
-        this.apiKey = apiKey;
-        this.user = user;
-        this.selectSQL = selectSQL;
-    }
-
-    public DBThread( SourceEventListener sourceEventListener, String hostName, String apiKey, String selectSQL) {
-        this.sourceEventListener = sourceEventListener;
-        this.hostName = hostName;
-        this.apiKey = apiKey;
-        this.selectSQL = selectSQL;
-    }
 
     @Override
     public void run() {

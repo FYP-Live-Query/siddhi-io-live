@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * This is a sample class-level comment, explaining what the extension class does.
@@ -206,7 +207,14 @@ public class LiveSource extends Source {
                 .IStreamingEngine(kafkaConsumerClient)
                 .build();
 
-        AbstractThread dbThread = new DBThread(sourceEventListener,hostName,apiKey,"root",selectQuery);
+        AbstractThread dbThread = DBThread.builder()
+                .sourceEventListener(sourceEventListener)
+                .apiKey(apiKey)
+                .port(443)
+                .selectSQL(selectQuery)
+                .hostName(hostName)
+                .user("root")
+                    .build();
 
         Thread threadCon = new Thread(consumerThread, "streaming thread");
         Thread threadDB = new Thread(dbThread, "Initial database thread");
