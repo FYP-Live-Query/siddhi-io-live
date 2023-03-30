@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 public class StreamThread extends AbstractThread {
     private final static Logger LOGGER = Logger.getGlobal();
     private IStreamingEngine<String> IStreamingEngine;
-    private String topicOfStream;
     @Builder.Default private final Runtime JVMRuntime = Runtime.getRuntime();;
     private SourceEventListener sourceEventListener;
 
@@ -34,7 +33,7 @@ public class StreamThread extends AbstractThread {
             }
         });
 
-        IStreamingEngine.subscribe(topicOfStream);
+        IStreamingEngine.subscribe();
     }
 
     @Override
