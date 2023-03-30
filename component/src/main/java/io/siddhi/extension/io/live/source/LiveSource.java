@@ -1,9 +1,9 @@
 package io.siddhi.extension.io.live.source;
 
 
+import io.siddhi.extension.io.live.source.Stream.IStreamingEngine;
 import io.siddhi.extension.io.live.source.Stream.KafkaClient.KafkaConsumerClient;
 import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
-import io.siddhi.extension.io.live.source.Stream.PulsarClient.PulsarClientTLSAuth;
 import io.siddhi.extension.io.live.source.Stream.StreamThread;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
@@ -20,16 +20,13 @@ import io.siddhi.core.util.snapshot.state.StateFactory;
 import io.siddhi.core.util.transport.OptionHolder;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
-import io.siddhi.extension.io.live.utils.Monitor;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.UUIDDeserializer;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * This is a sample class-level comment, explaining what the extension class does.
@@ -100,13 +97,23 @@ import java.util.concurrent.CountDownLatch;
                         name = "api.key",
                         description = "The api Key",
                         type = DataType.STRING
+                ),
+                @Parameter(
+                        name = "table.name",
+                        description = "Database table name",
+                        type = DataType.STRING
+                ),
+                @Parameter(
+                        name = "database.name",
+                        description = "Database name",
+                        type = DataType.STRING
                 )
         },
         examples = {
                 @Example(
                         syntax = "@source(type = 'live', sql.query='Select * from table', " +
                                 "\nhost.name='api-varden-example'," +
-                        "\napi.key = 'apikey-xxxxxxxxx', " +
+                        "\napi.key = 'apikey-xxxxxxxxx', database.name = 'databaseName', table.name = 'TableName', " +
                         "\n@map(type='keyvalue'), @attributes(id = 'id', name = 'name'))" +
                         "\ndefine stream inputStream (id int, name string)",
                         description = "In this example, the Live source executes the select query. The" +
@@ -125,6 +132,9 @@ public class LiveSource extends Source {
     protected String[] requestedTransportPropertyNames;
     private StreamThread consumerThread;
     private IPulsarClientBehavior pulsarClientTLSAuth;
+    private String fullQualifiedTableName;
+    private AbstractThread dbThread;
+    private IStreamingEngine<String> streamingClient;
     private String serviceURLOfPulsarServer = "pulsar+ssl://%s:6651";
     /**
      * The initialization method for {@link Source}, will be called before other methods. It used to validate
@@ -143,6 +153,7 @@ public class LiveSource extends Source {
     public StateFactory init(SourceEventListener sourceEventListener, OptionHolder optionHolder,
         String[] requestedTransportPropertyNames, ConfigReader configReader,
         SiddhiAppContext siddhiAppContext) {
+
             Map<String, String> deploymentConfigMap = new HashMap();
             deploymentConfigMap.putAll(configReader.getAllConfigs());
             siddhiAppName  =  siddhiAppContext.getName();
@@ -152,6 +163,10 @@ public class LiveSource extends Source {
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
             this.serviceURLOfPulsarServer = String.format(serviceURLOfPulsarServer,hostName);
+            this.fullQualifiedTableName =
+                    optionHolder.validateAndGetOption("database.name").getValue() + "." +
+                    optionHolder.validateAndGetOption("table.name").getValue();
+
         return null;
     }
 
@@ -186,48 +201,44 @@ public class LiveSource extends Source {
      */
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
-        // TODO : give a unique subscription name
-        pulsarClientTLSAuth = PulsarClientTLSAuth.builder()
-                .gdnAPIToken(apiKey)
-                .serviceUrlOfPulsarServer(serviceURLOfPulsarServer)
-                .build();
 
-        KafkaConsumerClient<String,String> kafkaConsumerClient = KafkaConsumerClient.<String,String>builder()
-                .bootstrap_server_config(hostName)
-                .key_deserializer_class_config(StringDeserializer.class)
-                .value_deserializer_class_config(StringDeserializer.class)
-                .group_id_config("siddhi-io-live-group-99")
-                .client_id_config("siddhi-io-live-group-client-88")
-                .topic("dbserver1.inventory.customers") // should add table name
-                .build();
+        String uuid = UUID.randomUUID().toString();
+
+        // TODO : give a unique subscription name
+        streamingClient = KafkaConsumerClient.<String,String>builder()
+                            .bootstrap_server_config(hostName) // should we obtain hostname from Config management system?
+                            .key_deserializer_class_config(StringDeserializer.class)
+                            .value_deserializer_class_config(StringDeserializer.class)
+                            .group_id_config("siddhi-io-live-group-" + uuid) // new subscriber should be in new group for multicasts subscription
+                            .client_id_config("siddhi-io-live-group-client-" + uuid) // new subscriber should be in new group for multicasts subscriptio
+                            .topic("dbserver1." + this.fullQualifiedTableName) // should add table name
+                            .build();
+
+//        dbThread = DBThread.builder()
+//                            .sourceEventListener(sourceEventListener)
+//                            .apiKey(apiKey)
+//                            .port(443)
+//                            .selectSQL(selectQuery)
+//                            .hostName(hostName)
+//                            .user("root")
+//                            .build();
+//        Thread threadDB = new Thread(dbThread, "Initial database thread");
 
         consumerThread = StreamThread.builder()
-                .topicOfStream("Tu_TZ0W2cR92-sr1j-l7ACA/c8local._system/c8locals.OutputStream")
-                .sourceEventListener(sourceEventListener)
-                .IStreamingEngine(kafkaConsumerClient)
-                .build();
-
-        AbstractThread dbThread = DBThread.builder()
-                .sourceEventListener(sourceEventListener)
-                .apiKey(apiKey)
-                .port(443)
-                .selectSQL(selectQuery)
-                .hostName(hostName)
-                .user("root")
-                    .build();
-
+                            .sourceEventListener(sourceEventListener)
+                            .IStreamingEngine(streamingClient)
+                            .build();
         Thread threadCon = new Thread(consumerThread, "streaming thread");
-        Thread threadDB = new Thread(dbThread, "Initial database thread");
+
 
         threadCon.start();
-        threadDB.start();
+//        threadDB.start();
         try {
             threadCon.join();
-            threadDB.join();
+//            threadDB.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
