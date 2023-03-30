@@ -15,6 +15,7 @@ public class PulsarClientTLSAuth implements IPulsarClientBehavior {
     private final static Logger LOGGER = Logger.getGlobal();
     private String gdnAPIToken;
     private String serviceUrlOfPulsarServer;
+    private String topic;
     private Reader<byte[]> reader;
 
     @Override
@@ -48,13 +49,13 @@ public class PulsarClientTLSAuth implements IPulsarClientBehavior {
     }
 
     @Override
-    public void subscribe(@NonNull String topicOfStream) {
+    public void subscribe() {
         PulsarClient pulsarClient;
         // Create a reader on a topic and for a specific message (and onward)
         try {
             pulsarClient = this.getPulsarClient();
             reader = pulsarClient.newReader()
-                    .topic(topicOfStream)
+                    .topic(topic)
                     .startMessageId(MessageId.latest)
                     .create();
         } catch (PulsarClientException e) {
