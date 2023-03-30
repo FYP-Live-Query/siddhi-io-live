@@ -69,7 +69,7 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
     }
 
     @Override
-    public void subscribe(String topicOfStream) {
+    public void subscribe() {
         // subscribe to topic
         synchronized (lock) {
             waitingInterrupted.set(false);
