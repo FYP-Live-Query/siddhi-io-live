@@ -1,6 +1,7 @@
 package io.siddhi.extension.io.live.source;
 
 
+import io.siddhi.core.config.SiddhiContext;
 import io.siddhi.extension.io.live.source.Stream.IStreamingEngine;
 import io.siddhi.extension.io.live.source.Stream.KafkaClient.KafkaConsumerClient;
 import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
@@ -131,7 +132,6 @@ public class LiveSource extends Source {
     protected SourceEventListener sourceEventListener;
     protected String[] requestedTransportPropertyNames;
     private StreamThread consumerThread;
-    private IPulsarClientBehavior pulsarClientTLSAuth;
     private String fullQualifiedTableName;
     private AbstractThread dbThread;
     private IStreamingEngine<String> streamingClient;
@@ -157,15 +157,16 @@ public class LiveSource extends Source {
             Map<String, String> deploymentConfigMap = new HashMap();
             deploymentConfigMap.putAll(configReader.getAllConfigs());
             siddhiAppName  =  siddhiAppContext.getName();
+            SiddhiContext siddhiContext = siddhiAppContext.getSiddhiContext();
+            this.fullQualifiedTableName =
+                    new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"database.name")) + "." +
+                            new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"table.name"));
             this.sourceEventListener = sourceEventListener;
             this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
             this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
             this.serviceURLOfPulsarServer = String.format(serviceURLOfPulsarServer,hostName);
-            this.fullQualifiedTableName =
-                    optionHolder.validateAndGetOption("database.name").getValue() + "." +
-                    optionHolder.validateAndGetOption("table.name").getValue();
 
         return null;
     }
