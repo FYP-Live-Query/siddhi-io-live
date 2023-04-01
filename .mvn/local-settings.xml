@@ -1,23 +1,23 @@
 <settings>
     <mirrors>
-        <mirror>
-            <id>wso2.releases</id>
-            <mirrorOf>wso2.releases</mirrorOf>
-            <name></name>
-            <url>http://maven.wso2.org/nexus/content/repositories/releases/</url>
-        </mirror>
-        <mirror>
-            <id>wso2.snapshots</id>
-            <mirrorOf>wso2.snapshots</mirrorOf>
-            <name></name>
-            <url>http://maven.wso2.org/nexus/content/repositories/snapshots/</url>
-        </mirror>
-        <mirror>
-            <id>wso2-nexus</id>
-            <mirrorOf>wso2-nexus</mirrorOf>
-                <name></name>
-            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
-        </mirror>
+<!--        <mirror>-->
+<!--            <id>wso2.releases</id>-->
+<!--            <mirrorOf>wso2.releases</mirrorOf>-->
+<!--            <name></name>-->
+<!--            <url>http://maven.wso2.org/nexus/content/repositories/releases/</url>-->
+<!--        </mirror>-->
+<!--        <mirror>-->
+<!--            <id>wso2.snapshots</id>-->
+<!--            <mirrorOf>wso2.snapshots</mirrorOf>-->
+<!--            <name></name>-->
+<!--            <url>http://maven.wso2.org/nexus/content/repositories/snapshots/</url>-->
+<!--        </mirror>-->
+<!--        <mirror>-->
+<!--            <id>wso2-nexus</id>-->
+<!--            <mirrorOf>wso2-nexus</mirrorOf>-->
+<!--                <name></name>-->
+<!--            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>-->
+<!--        </mirror>-->
         <mirror>
             <id>maven</id>
             <mirrorOf>maven</mirrorOf>
