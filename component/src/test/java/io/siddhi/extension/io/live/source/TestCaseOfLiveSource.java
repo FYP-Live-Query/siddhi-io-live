@@ -1,22 +1,13 @@
 package io.siddhi.extension.io.live.source;
 
-// import com.c8db.C8Cursor;
-// import com.c8db.C8DB;
-// import com.c8db.entity.BaseDocument;
 import io.siddhi.core.SiddhiAppRuntime;
 import io.siddhi.core.SiddhiManager;
-import io.siddhi.core.config.SiddhiContext;
 import io.siddhi.core.event.Event;
 import io.siddhi.core.query.output.callback.QueryCallback;
-import io.siddhi.core.stream.input.InputHandler;
 import io.siddhi.core.util.EventPrinter;
-import io.siddhi.core.util.SiddhiAppRuntimeBuilder;
-import io.siddhi.core.util.parser.SiddhiAppParser;
 import io.siddhi.core.util.persistence.InMemoryPersistenceStore;
 import io.siddhi.core.util.persistence.PersistenceStore;
-import io.siddhi.query.compiler.SiddhiCompiler;
 import lombok.SneakyThrows;
-import org.apache.kafka.common.serialization.Serializer;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import SiddhiAppComposites.Annotation.Attributes.JsonMapAttributes;
@@ -33,17 +24,16 @@ import org.testng.annotations.Test;
 
 
 import java.io.Serializable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Testcase of LiveSource.
  */
 public class TestCaseOfLiveSource implements Serializable {
     private static final Logger logObj = (Logger) LogManager.getLogger(TestCaseOfLiveSource.class);
-    private AtomicInteger eventCount = new AtomicInteger(0);
+    private AtomicLong eventCount = new AtomicLong(0);
+    private AtomicLong sumtime = new AtomicLong(0);
     private LinkedBlockingQueue<Event> linkedBlockingQueue = new LinkedBlockingQueue<>();
     private Thread thread = new Thread(new Runnable() {
         @SneakyThrows
@@ -52,8 +42,8 @@ public class TestCaseOfLiveSource implements Serializable {
             while(true) {
                 Event e = linkedBlockingQueue.take();
                 long time = System.currentTimeMillis() - Long.parseLong(e.getData()[3].toString());
-                System.out.println(time);
-//                Thread.sleep(100); // processing delyas
+                sumtime.getAndAdd(time);
+                System.out.println("Time:" + time + " avg:" + sumtime.get() / eventCount.incrementAndGet());
             }
 
         }
@@ -156,13 +146,13 @@ public class TestCaseOfLiveSource implements Serializable {
         String SQL = "SELECT  ip@string,  " +
                 "browser@string, " +
                 "sum(traffic@int) as sum_traffic, eventTimestamp@long, " +
-                "date@string FROM table WHERE (browser@string = 'firefox' AND traffic@int > 20);";
+                "date@string FROM tableA";
 
         SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
                 "SiddhiApp-dev-test",
                 SQL,
                 new LiveSource()
-                        .addSourceComposite(new KeyValue<>("host.name","localhost:9092"))
+                        .addSourceComposite(new KeyValue<>("host.name","10.8.100.246:9092"))
                         .addSourceComposite(new KeyValue<>("api.key","")),
                 new JsonMap()
                         .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))

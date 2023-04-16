@@ -5,7 +5,6 @@ import io.siddhi.extension.io.live.source.Stream.KafkaClient.ActiveConsumerRecod
 import lombok.Builder;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.errors.WakeupException;
-import org.apache.tapestry5.json.JSONObject;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -23,8 +22,7 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
     private String client_id_config;
     private String topic;
     private final AtomicBoolean waitingInterrupted = new AtomicBoolean(false);
-    private final ActiveConsumerRecordHandler<KeyType,ValueType> activeConsumerRecordHandler
-            = new ActiveConsumerRecordHandler<>();
+    private ActiveConsumerRecordHandler<KeyType,ValueType> activeConsumerRecordHandler;
 
     private final Object lock = new Object();
 
@@ -33,14 +31,17 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
     public void consumeMessage(java.util.function.Consumer<ValueType> consumer) {
         activeConsumerRecordHandler.setConsumer(consumer);
         activeConsumerRecordHandler.start();
-        synchronized(lock) {
-            try{
-                ConsumerRecords<KeyType, ValueType> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(1000));
-                activeConsumerRecordHandler.addConsumerRecords(consumerRecords);
-                kafkaConsumer.commitSync();
-            } catch (WakeupException e){
-                if(!waitingInterrupted.get()) {
-                    throw e;
+        while(!waitingInterrupted.get()) {
+            synchronized (lock) {
+                try {
+                    ConsumerRecords<KeyType, ValueType> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(10000));
+                    System.out.println("polloing");
+                    activeConsumerRecordHandler.addConsumerRecords(consumerRecords);
+                    kafkaConsumer.commitAsync();
+                } catch (WakeupException e) {
+                    if (!waitingInterrupted.get()) {
+                        throw e;
+                    }
                 }
             }
         }
