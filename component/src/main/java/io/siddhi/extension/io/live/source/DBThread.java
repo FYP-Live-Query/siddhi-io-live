@@ -93,7 +93,7 @@ public class DBThread extends AbstractThread {
                     System.out.println("col"+columnValue);
                     jsonObject.put(columnName, columnValue);
                 }
-                jsonObject.put("initial_data", true);
+                jsonObject.put("initial_data", "true");
                 JSONObject jsonObject2 = new JSONObject(jsonObject);
                 JSONObject properties = new JSONObject();
                 properties.put("properties",jsonObject2);
