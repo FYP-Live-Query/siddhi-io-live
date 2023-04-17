@@ -219,7 +219,7 @@ public class LiveSource extends Source {
                             .sourceEventListener(sourceEventListener)
                             .port(3306)
                             .selectSQL(selectQuery)
-                            .hostName("mysql")
+                            .hostName("10.8.100.246")
                             .username("root")
                             .password("debezium")
                             .dbName("inventory")

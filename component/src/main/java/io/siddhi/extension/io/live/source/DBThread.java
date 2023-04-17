@@ -71,15 +71,13 @@ public class DBThread extends AbstractThread {
 
         try {
             // Create a connection to the MySQL database
-//            Class.forName("com.mysql.jdbc.Driver");
-//            String url = "jdbc:mysql://" + hostName + ":" + port + "/" + dbName;
-            String jdbcUrl = "jdbc:mysql://10.8.100.246:3306/inventory";
+            String jdbcUrl = "jdbc:mysql://" + hostName + ":" + port + "/" + dbName;
 
             connection = DriverManager.getConnection(jdbcUrl, username, password);
             statement = connection.createStatement();
             // Execute the selectSQL query and process the results
             String select = selectSQL.replaceAll("@\\w+", "");
-
+            System.out.println("query: "+select);
             resultSet = statement.executeQuery(select);
             while (resultSet.next() && isThreadRunning) {
                 if (isPaused) {
@@ -96,8 +94,6 @@ public class DBThread extends AbstractThread {
                     jsonObject.put(columnName, columnValue);
                 }
                 jsonObject.put("initial_data", true);
-//                String json = jsonObject.toString();
-//
                 JSONObject jsonObject2 = new JSONObject(jsonObject);
                 JSONObject properties = new JSONObject();
                 properties.put("properties",jsonObject2);

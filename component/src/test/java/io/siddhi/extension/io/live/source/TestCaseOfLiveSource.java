@@ -165,7 +165,7 @@ public class TestCaseOfLiveSource {
         PersistenceStore persistenceStore = new InMemoryPersistenceStore();
         SiddhiManager siddhiManager = new SiddhiManager();
         siddhiManager.setPersistenceStore(persistenceStore);
-        String SQL = "SELECT ip@string,browser@string,date@string, stdDev(traffic@double) AS traffic_sum FROM table WHERE traffic@double > 90";
+        String SQL = "SELECT  ip@string, eventTimestamp@string FROM networkTraffic;";
         SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
                 "SiddhiApp-dev-test",
                 SQL,
@@ -211,7 +211,7 @@ public class TestCaseOfLiveSource {
 //        siddhiAppRuntimeMap.put(siddhiAppRuntime.getName(), siddhiAppRuntime);
 
         persistenceStore.save("SiddhiApp-dev-test","table.name",siddhiApp.getTableName().getBytes());
-        persistenceStore.save("SiddhiApp-dev-test","database.name","database".getBytes());
+        persistenceStore.save("SiddhiApp-dev-test","database.name","inventory".getBytes());
         SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
 
         siddhiAppRuntime.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
