@@ -35,7 +35,6 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
             synchronized (lock) {
                 try {
                     ConsumerRecords<KeyType, ValueType> consumerRecords = kafkaConsumer.poll(Duration.ofMillis(10000));
-                    System.out.println("polloing");
                     activeConsumerRecordHandler.addConsumerRecords(consumerRecords);
                     kafkaConsumer.commitAsync();
                 } catch (WakeupException e) {
