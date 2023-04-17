@@ -48,7 +48,8 @@ package io.siddhi.extension.io.live.source;
 import io.siddhi.core.stream.input.source.SourceEventListener;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import lombok.Builder;
-import org.json.JSONObject;
+//import org.json.JSONObject;
+import net.minidev.json.JSONObject;
 
 import java.sql.*;
 
@@ -70,9 +71,11 @@ public class DBThread extends AbstractThread {
 
         try {
             // Create a connection to the MySQL database
-            Class.forName("com.mysql.jdbc.Driver");
-            String url = "jdbc:mysql://" + hostName + ":" + port + "/" + dbName;
-            connection = DriverManager.getConnection(url, username, password);
+//            Class.forName("com.mysql.jdbc.Driver");
+//            String url = "jdbc:mysql://" + hostName + ":" + port + "/" + dbName;
+            String jdbcUrl = "jdbc:mysql://10.8.100.246:3306/inventory";
+
+            connection = DriverManager.getConnection(jdbcUrl, username, password);
             statement = connection.createStatement();
             // Execute the selectSQL query and process the results
             String select = selectSQL.replaceAll("@\\w+", "");
@@ -93,8 +96,13 @@ public class DBThread extends AbstractThread {
                     jsonObject.put(columnName, columnValue);
                 }
                 jsonObject.put("initial_data", true);
-                String json = jsonObject.toString();
-
+//                String json = jsonObject.toString();
+//
+                JSONObject jsonObject2 = new JSONObject(jsonObject);
+                JSONObject properties = new JSONObject();
+                properties.put("properties",jsonObject2);
+                String json = properties.toString();
+//
                 // Send the event to the Siddhi source listener
                 sourceEventListener.onEvent(json, null);
             }
