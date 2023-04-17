@@ -215,15 +215,16 @@ public class LiveSource extends Source {
                             .topic("dbserver1." + this.fullQualifiedTableName) // should add table name
                             .build();
 
-//        dbThread = DBThread.builder()
-//                            .sourceEventListener(sourceEventListener)
-//                            .apiKey(apiKey)
-//                            .port(443)
-//                            .selectSQL(selectQuery)
-//                            .hostName(hostName)
-//                            .user("root")
-//                            .build();
-//        Thread threadDB = new Thread(dbThread, "Initial database thread");
+        dbThread = DBThread.builder()
+                            .sourceEventListener(sourceEventListener)
+                            .port(3306)
+                            .selectSQL(selectQuery)
+                            .hostName("mysql")
+                            .username("root")
+                            .password("debezium")
+                            .dbName("inventory")
+                            .build();
+        Thread threadDB = new Thread(dbThread, "Initial database thread");
 
         consumerThread = StreamThread.builder()
                             .sourceEventListener(sourceEventListener)
@@ -233,10 +234,10 @@ public class LiveSource extends Source {
 
 
         threadCon.start();
-//        threadDB.start();
+        threadDB.start();
         try {
             threadCon.join();
-//            threadDB.join();
+            threadDB.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

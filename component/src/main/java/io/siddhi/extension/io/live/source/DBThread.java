@@ -1,45 +1,120 @@
+//package io.siddhi.extension.io.live.source;
+//
+//import com.c8db.C8Cursor;
+//import com.c8db.C8DB;
+//import com.c8db.entity.BaseDocument;
+//import com.google.gson.Gson;
+//import io.siddhi.core.stream.input.source.SourceEventListener;
+//import io.siddhi.extension.io.live.source.Thread.AbstractThread;
+//import io.siddhi.extension.io.live.utils.Monitor;
+////import net.minidev.json.JSONObject;
+//import lombok.Builder;
+//import org.apache.tapestry5.json.JSONObject;
+//
+//@Builder
+//public class DBThread extends AbstractThread {
+//    private final SourceEventListener sourceEventListener;
+//    private String hostName;
+//    private int port = 443;
+//    private String apiKey;
+//    private String user = "root";
+//    private String selectSQL;
+//
+//    @Override
+//    public void run() {
+//        final C8DB c8db = new C8DB.Builder().useSsl(true).host(hostName , port).apiKey(apiKey).user(user).build();
+//        final C8Cursor<BaseDocument> cursor = c8db.db(null , "_system")
+//                .query(selectSQL, null, null, BaseDocument.class);
+//
+//        while (cursor.hasNext() && isThreadRunning) {
+//            if(isPaused) {
+//                System.out.println("paused - DB thread");
+//                doPause();
+//            }
+//            Gson gson = new Gson();
+//            String json = gson.toJson(cursor.next());
+//
+//            JSONObject jsonObject = new JSONObject(json);
+//            JSONObject properties = jsonObject.getJSONObject("properties");
+//            properties.put("initial_data", "true");
+//            json = jsonObject.toString();
+//
+//            sourceEventListener.onEvent(json , null);
+//        }
+//    }
+//}
 package io.siddhi.extension.io.live.source;
 
-import com.c8db.C8Cursor;
-import com.c8db.C8DB;
-import com.c8db.entity.BaseDocument;
-import com.google.gson.Gson;
 import io.siddhi.core.stream.input.source.SourceEventListener;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
-import io.siddhi.extension.io.live.utils.Monitor;
-//import net.minidev.json.JSONObject;
 import lombok.Builder;
-import org.apache.tapestry5.json.JSONObject;
+import org.json.JSONObject;
+
+import java.sql.*;
 
 @Builder
 public class DBThread extends AbstractThread {
     private final SourceEventListener sourceEventListener;
     private String hostName;
-    private int port = 443;
-    private String apiKey;
-    private String user = "root";
+    private int port;
+    private String username;
+    private String password;
+    private String dbName;
     private String selectSQL;
 
     @Override
     public void run() {
-        final C8DB c8db = new C8DB.Builder().useSsl(true).host(hostName , port).apiKey(apiKey).user(user).build();
-        final C8Cursor<BaseDocument> cursor = c8db.db(null , "_system")
-                .query(selectSQL, null, null, BaseDocument.class);
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
 
-        while (cursor.hasNext() && isThreadRunning) {
-            if(isPaused) {
-                System.out.println("paused - DB thread");
-                doPause();
+        try {
+            // Create a connection to the MySQL database
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://" + hostName + ":" + port + "/" + dbName;
+            connection = DriverManager.getConnection(url, username, password);
+            statement = connection.createStatement();
+            // Execute the selectSQL query and process the results
+            String select = selectSQL.replaceAll("@\\w+", "");
+
+            resultSet = statement.executeQuery(select);
+            while (resultSet.next() && isThreadRunning) {
+                if (isPaused) {
+                    System.out.println("paused - DB thread");
+                    doPause();
+                }
+                // Convert the row to a JSON object and add the "initial_data" property
+                JSONObject jsonObject = new JSONObject();
+                int numColumns = resultSet.getMetaData().getColumnCount();
+                for (int i = 1; i <= numColumns; i++) {
+                    String columnName = resultSet.getMetaData().getColumnName(i);
+                    Object columnValue = resultSet.getObject(i);
+                    System.out.println("col"+columnValue);
+                    jsonObject.put(columnName, columnValue);
+                }
+                jsonObject.put("initial_data", true);
+                String json = jsonObject.toString();
+
+                // Send the event to the Siddhi source listener
+                sourceEventListener.onEvent(json, null);
             }
-            Gson gson = new Gson();
-            String json = gson.toJson(cursor.next());
-
-            JSONObject jsonObject = new JSONObject(json);
-            JSONObject properties = jsonObject.getJSONObject("properties");
-            properties.put("initial_data", "true");
-            json = jsonObject.toString();
-
-            sourceEventListener.onEvent(json , null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Close the database resources
+            try {
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
