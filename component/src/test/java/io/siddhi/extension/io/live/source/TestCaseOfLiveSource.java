@@ -175,7 +175,7 @@ public class TestCaseOfLiveSource implements Serializable {
         System.out.println(siddhiAppString);
 
         persistenceStore.save("SiddhiApp-dev-test","table.name",siddhiApp.getTableName().getBytes());
-        persistenceStore.save("SiddhiApp-dev-test","database.name","database".getBytes());
+        persistenceStore.save("SiddhiApp-dev-test","database.name","inventory".getBytes());
         SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
 
         siddhiAppRuntime.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
