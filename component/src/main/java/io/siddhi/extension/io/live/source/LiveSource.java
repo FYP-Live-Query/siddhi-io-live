@@ -3,6 +3,7 @@ package io.siddhi.extension.io.live.source;
 
 import io.siddhi.core.config.SiddhiContext;
 import io.siddhi.extension.io.live.source.Stream.IStreamingEngine;
+import io.siddhi.extension.io.live.source.Stream.KafkaClient.ActiveConsumerRecodHandling.ActiveConsumerRecordHandler;
 import io.siddhi.extension.io.live.source.Stream.KafkaClient.KafkaConsumerClient;
 import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
 import io.siddhi.extension.io.live.source.Stream.StreamThread;
@@ -213,6 +214,7 @@ public class LiveSource extends Source {
                             .group_id_config("siddhi-io-live-group-" + uuid) // new subscriber should be in new group for multicasts subscription
                             .client_id_config("siddhi-io-live-group-client-" + uuid) // new subscriber should be in new group for multicasts subscriptio
                             .topic("dbserver1." + this.fullQualifiedTableName) // should add table name
+                            .activeConsumerRecordHandler(new ActiveConsumerRecordHandler<>())
                             .build();
 
         dbThread = DBThread.builder()
