@@ -77,7 +77,6 @@ public class DBThread extends AbstractThread {
             statement = connection.createStatement();
             // Execute the selectSQL query and process the results
             String select = selectSQL.replaceAll("@\\w+", "");
-            System.out.println("query: "+select);
             resultSet = statement.executeQuery(select);
             while (resultSet.next() && isThreadRunning) {
                 if (isPaused) {
@@ -89,8 +88,7 @@ public class DBThread extends AbstractThread {
                 int numColumns = resultSet.getMetaData().getColumnCount();
                 for (int i = 1; i <= numColumns; i++) {
                     String columnName = resultSet.getMetaData().getColumnName(i);
-                    Object columnValue = resultSet.getObject(i);
-                    System.out.println("col"+columnValue);
+                    Object columnValue = resultSet.getObject(i).toString();
                     jsonObject.put(columnName, columnValue);
                 }
                 jsonObject.put("initial_data", "true");
@@ -98,7 +96,6 @@ public class DBThread extends AbstractThread {
                 JSONObject properties = new JSONObject();
                 properties.put("properties",jsonObject2);
                 String json = properties.toString();
-//
                 // Send the event to the Siddhi source listener
                 sourceEventListener.onEvent(json, null);
             }

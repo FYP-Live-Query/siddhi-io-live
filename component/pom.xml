@@ -116,7 +116,7 @@
             <artifactId>SQLtoSiddhiQL</artifactId>
             <version>0.9.7</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/sqltosiddhiql-0.9.7-SNAPSHOT.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/sqltosiddhiql-0.9.9-SNAPSHOT.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>

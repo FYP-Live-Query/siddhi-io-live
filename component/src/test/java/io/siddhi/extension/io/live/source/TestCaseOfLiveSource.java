@@ -165,12 +165,12 @@ public class TestCaseOfLiveSource {
         PersistenceStore persistenceStore = new InMemoryPersistenceStore();
         SiddhiManager siddhiManager = new SiddhiManager();
         siddhiManager.setPersistenceStore(persistenceStore);
-        String SQL = "SELECT  ip@string, eventTimestamp@string FROM networkTraffic;";
+        String SQL = "SELECT  ip@string, date@string, eventTimestamp@string FROM networkTraffic;";
         SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
                 "SiddhiApp-dev-test",
                 SQL,
                 new LiveSource()
-                        .addSourceComposite(new KeyValue<>("host.name","localhost:9092"))
+                        .addSourceComposite(new KeyValue<>("host.name","10.8.100.246:9092"))
                         .addSourceComposite(new KeyValue<>("api.key","")),
                 new JsonMap()
                         .addMapComposite(new KeyValue<>("fail.on.missing.attribute","true"))
