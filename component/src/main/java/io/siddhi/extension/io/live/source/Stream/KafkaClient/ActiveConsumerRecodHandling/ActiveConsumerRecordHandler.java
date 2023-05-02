@@ -6,16 +6,24 @@ import org.apache.tapestry5.json.JSONObject;
 
 import java.util.concurrent.*;
 import java.util.function.Consumer;
+import com.google.common.reflect.TypeToken;
+import java.lang.reflect.Type;
 
 public class ActiveConsumerRecordHandler<KeyType, ValueType> {
     private final BlockingQueue<ConsumerRecords<KeyType, ValueType>> consumerRecordsList;
-    private final BlockingQueue<Runnable> runnablesBlockingQueue;
     private java.util.function.Consumer<ValueType> consumer;
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
+    private final TypeToken<ValueType> typeToken = new TypeToken<ValueType>(getClass()) { };
+    private final Type type = typeToken.getType(); // or getRawType() to return Class<? super T>
+
+    public Type getType() {
+        return type;
+    }
+
     public ActiveConsumerRecordHandler() {
         this.consumerRecordsList = new LinkedBlockingQueue<>();
-        this.runnablesBlockingQueue = new ArrayBlockingQueue<>(10);
-        this.executorService = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),Runtime.getRuntime().availableProcessors(),100, TimeUnit.MILLISECONDS,runnablesBlockingQueue);
+        BlockingQueue<Runnable> runnablesBlockingQueue = new ArrayBlockingQueue<>(10); // for executor service
+        this.executorService = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),Runtime.getRuntime().availableProcessors(),100, TimeUnit.MILLISECONDS, runnablesBlockingQueue);
     }
 
     public void start(){
@@ -28,22 +36,19 @@ public class ActiveConsumerRecordHandler<KeyType, ValueType> {
                 while (true) {
                     try {
                         ConsumerRecords<KeyType, ValueType> consumerRecords = consumerRecordsList.take();
-                        executorService.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                for (ConsumerRecord<KeyType, ValueType> consumerRecord : consumerRecords) {
-                                    String stringJsonMsg = consumerRecord.value().toString();
-                                    JSONObject jsonObject = new JSONObject(stringJsonMsg);
-                                    JSONObject newValue = (JSONObject) ((JSONObject) jsonObject.get("payload")).get("after");
+                        executorService.execute(() -> {
+                            for (ConsumerRecord<KeyType, ValueType> consumerRecord : consumerRecords) {
+                                String stringJsonMsg = consumerRecord.value().toString();
+                                JSONObject jsonObject = new JSONObject(stringJsonMsg);
+                                JSONObject newValue = (JSONObject) ((JSONObject) jsonObject.get("payload")).get("after");
 
-                                    newValue.put("initial_data", "false"); // as required by the backend processing
+                                newValue.put("initial_data", "false"); // as required by the backend processing
 
-                                    JSONObject obj = new JSONObject();
-                                    obj.put("properties", newValue); // all user required data for siddhi processing inside properties section in JSON object
-                                    String strMsg = obj.toString();
+                                JSONObject obj = new JSONObject();
+                                obj.put("properties", newValue); // all user required data for siddhi processing inside properties section in JSON object
+                                String strMsg = obj.toString();
 
-                                    consumer.accept((ValueType) strMsg); // The Java Consumer interface is a functional interface that represents an function that consumes a value without returning any value.
-                                }
+                                consumer.accept((ValueType) strMsg); // The Java Consumer interface is a functional interface that represents a function that consumes a value without returning any value.
                             }
                         });
                     } catch (InterruptedException e) {
