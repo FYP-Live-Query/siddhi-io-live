@@ -4,6 +4,7 @@ package io.siddhi.extension.io.live.source;
 import io.siddhi.core.config.SiddhiContext;
 import io.siddhi.extension.io.live.source.Stream.IStreamingEngine;
 import io.siddhi.extension.io.live.source.Stream.KafkaClient.ActiveConsumerRecodHandling.ActiveConsumerRecordHandler;
+import io.siddhi.extension.io.live.source.Stream.KafkaClient.AutoOffsetResetConfig;
 import io.siddhi.extension.io.live.source.Stream.KafkaClient.KafkaConsumerClient;
 import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
 import io.siddhi.extension.io.live.source.Stream.StreamThread;
@@ -26,6 +27,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -131,6 +133,7 @@ public class LiveSource extends Source {
     private String hostName;
     private String apiKey;
     protected SourceEventListener sourceEventListener;
+    private SiddhiContext siddhiContext;
     protected String[] requestedTransportPropertyNames;
     private StreamThread consumerThread;
     private String fullQualifiedTableName;
@@ -158,10 +161,10 @@ public class LiveSource extends Source {
             Map<String, String> deploymentConfigMap = new HashMap();
             deploymentConfigMap.putAll(configReader.getAllConfigs());
             siddhiAppName  =  siddhiAppContext.getName();
-            SiddhiContext siddhiContext = siddhiAppContext.getSiddhiContext();
+            this.siddhiContext = siddhiAppContext.getSiddhiContext();
             this.fullQualifiedTableName =
-                    new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"database.name")) + "." +
-                            new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"table.name"));
+                    new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"database.name"), StandardCharsets.UTF_8) + "." +
+                            new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"table.name"), StandardCharsets.UTF_8);
             this.sourceEventListener = sourceEventListener;
             this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
             this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
@@ -214,19 +217,20 @@ public class LiveSource extends Source {
                             .group_id_config("siddhi-io-live-group-" + uuid) // new subscriber should be in new group for multicasts subscription
                             .client_id_config("siddhi-io-live-group-client-" + uuid) // new subscriber should be in new group for multicasts subscriptio
                             .topic("dbserver1." + this.fullQualifiedTableName) // should add table name
+                            .auto_offset_reset_config(AutoOffsetResetConfig.LATEST)
                             .activeConsumerRecordHandler(new ActiveConsumerRecordHandler<>())
                             .build();
 
-        dbThread = DBThread.builder()
-                            .sourceEventListener(sourceEventListener)
-                            .port(3306)
-                            .selectSQL(selectQuery)
-                            .hostName("10.8.100.246")
-                            .username("root")
-                            .password("debezium")
-                            .dbName("inventory")
-                            .build();
-        Thread threadDB = new Thread(dbThread, "Initial database thread");
+//        dbThread = DBThread.builder()
+//                            .sourceEventListener(sourceEventListener)
+//                            .port(3306)
+//                            .selectSQL(selectQuery)
+//                            .hostName(hostName.substring(0,hostName.length() - 5))
+//                            .username("root")
+//                            .password("debezium")
+//                            .dbName(new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"database.name"), StandardCharsets.UTF_8))
+//                            .build();
+//        Thread threadDB = new Thread(dbThread, "Initial database thread");
 
         consumerThread = StreamThread.builder()
                             .sourceEventListener(sourceEventListener)
@@ -236,10 +240,10 @@ public class LiveSource extends Source {
 
 
         threadCon.start();
-        threadDB.start();
+//        threadDB.start();
         try {
             threadCon.join();
-            threadDB.join();
+//            threadDB.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
