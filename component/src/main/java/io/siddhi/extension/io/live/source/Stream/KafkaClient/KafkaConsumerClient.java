@@ -16,6 +16,7 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
 
     private Consumer<KeyType, ValueType> kafkaConsumer;
     private String bootstrap_server_config;
+    private AutoOffsetResetConfig auto_offset_reset_config;
     private Class key_deserializer_class_config;
     private Class value_deserializer_class_config;
     private String group_id_config;
@@ -50,6 +51,7 @@ public class KafkaConsumerClient<KeyType,ValueType> implements IStreamingEngine<
         Properties consumerProps = new Properties();
 
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,this.bootstrap_server_config);
+        consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,this.auto_offset_reset_config.getName());
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, this.key_deserializer_class_config);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, this.value_deserializer_class_config);
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG,this.group_id_config);
