@@ -152,7 +152,7 @@ public class TestCaseOfLiveSource implements Serializable {
                 "SiddhiApp-dev-test",
                 SQL,
                 new LiveSource()
-                        .addSourceComposite(new KeyValue<>("host.name","10.8.100.246:9092"))
+                        .addSourceComposite(new KeyValue<>("host.name","20.171.111.32:9092"))
                         .addSourceComposite(new KeyValue<>("api.key","")),
                 new JsonMap()
                         .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))
