@@ -145,15 +145,19 @@ public class TestCaseOfLiveSource implements Serializable {
 
         String SQL = "SELECT  ip@string,  " +
                 "browser@string, " +
-                "sum(traffic@int) as sum_traffic, eventTimestamp@long, " +
-                "date@string FROM tableA";
+                "timestamp@string, eventTimestamp@long, " +
+                "date@string FROM networkTraffic";
+        boolean locationIsEnabled = true;
+        String location = "US";
 
         SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
                 "SiddhiApp-dev-test",
                 SQL,
                 new LiveSource()
-                        .addSourceComposite(new KeyValue<>("host.name","10.8.100.246:9092"))
-                        .addSourceComposite(new KeyValue<>("api.key","")),
+                        .addSourceComposite(new KeyValue<>("host.name","20.171.111.32:9092"))
+                        .addSourceComposite(new KeyValue<>("api.key",""))
+                        .addSourceComposite(new KeyValue<>("locationIsEnabled", locationIsEnabled))
+                        .addSourceComposite(new KeyValue<>("location", location)),
                 new JsonMap()
                         .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))
                         .addMapComposite(new KeyValue<>("enclosing.element","$.properties")),
@@ -173,6 +177,7 @@ public class TestCaseOfLiveSource implements Serializable {
 //                "select  ip  , browser  ,sum( traffic )  as sum_traffic , date  \n" +
 //                "insert into tableOutputStream;";
         System.out.println(siddhiAppString);
+//        System.out.println("location "+location);
 
         persistenceStore.save("SiddhiApp-dev-test","table.name",siddhiApp.getTableName().getBytes());
         persistenceStore.save("SiddhiApp-dev-test","database.name","inventory".getBytes());

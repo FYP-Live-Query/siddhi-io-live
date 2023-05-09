@@ -132,11 +132,14 @@ public class LiveSource extends Source {
     private String selectQuery;
     private String hostName;
     private String apiKey;
+    private String location;
+    private boolean locationIsEnabled;
     protected SourceEventListener sourceEventListener;
     private SiddhiContext siddhiContext;
     protected String[] requestedTransportPropertyNames;
     private StreamThread consumerThread;
     private String fullQualifiedTableName;
+    private String serverName;
     private AbstractThread dbThread;
     private IStreamingEngine<String> streamingClient;
     private String serviceURLOfPulsarServer = "pulsar+ssl://%s:6651";
@@ -169,6 +172,8 @@ public class LiveSource extends Source {
             this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
             this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
+            this.locationIsEnabled = Boolean.parseBoolean(optionHolder.validateAndGetOption(LiveSourceConstants.LOCATIONISENABLED).getValue());
+            this.location = optionHolder.validateAndGetOption(LiveSourceConstants.LOCATION).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
             this.serviceURLOfPulsarServer = String.format(serviceURLOfPulsarServer,hostName);
 
@@ -208,7 +213,19 @@ public class LiveSource extends Source {
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
 
         String uuid = UUID.randomUUID().toString();
+        HashMap<String, String> serverNames = new HashMap<String, String>();
 
+        // Adding key-value pairs to the hashmap
+        serverNames.put("US", "20.171.111.32");
+        serverNames.put("none", "20.171.111.32");
+        serverNames.put("ASIA", "20.171.111.32");
+        serverNames.put("AFRICA", "20.171.111.32");
+        if(locationIsEnabled){
+            hostName = serverNames.get("none");
+        }
+        else{
+            hostName = serverNames.get(location);
+        }
         // TODO : give a unique subscription name
         streamingClient = KafkaConsumerClient.<String,String>builder()
                             .bootstrap_server_config(hostName) // should we obtain hostname from Config management system?
@@ -220,7 +237,7 @@ public class LiveSource extends Source {
                             .auto_offset_reset_config(AutoOffsetResetConfig.LATEST)
                             .activeConsumerRecordHandler(new ActiveConsumerRecordHandler<>())
                             .build();
-
+//        System.out.println("server "+serverName);
 //        dbThread = DBThread.builder()
 //                            .sourceEventListener(sourceEventListener)
 //                            .port(3306)
