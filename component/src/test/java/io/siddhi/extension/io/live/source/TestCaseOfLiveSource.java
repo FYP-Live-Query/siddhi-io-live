@@ -19,11 +19,17 @@ import SiddhiAppComposites.Annotation.Source.LiveSource;
 import SiddhiAppComposites.SiddhiAppGenerator;
 import SiddhiAppComposites.SiddhiApp;
 
+import org.apache.pulsar.shade.org.eclipse.util.thread.ExecutorThreadPool;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -41,13 +47,15 @@ public class TestCaseOfLiveSource implements Serializable {
         public void run() {
             while(true) {
                 Event e = linkedBlockingQueue.take();
-                long time = System.currentTimeMillis() - Long.parseLong(e.getData()[3].toString());
+                long time = System.currentTimeMillis() - Long.parseLong(e.getData()[1].toString());
                 sumtime.getAndAdd(time);
                 System.out.println("Time:" + time + " avg:" + sumtime.get() / eventCount.incrementAndGet());
             }
 
         }
     });
+
+    ExecutorService executorService = Executors.newFixedThreadPool(1000);
     private int waitTime = 50;
     private int timeout = 30000;
     @BeforeMethod
@@ -144,9 +152,8 @@ public class TestCaseOfLiveSource implements Serializable {
         siddhiManager.setPersistenceStore(persistenceStore);
 
         String SQL = "SELECT  ip@string,  " +
-                "browser@string, " +
-                "sum(traffic@int) as sum_traffic, eventTimestamp@long, " +
-                "date@string FROM tableA";
+                "eventTimestamp@long " +
+                " FROM networkTraffic";
 
         SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
                 "SiddhiApp-dev-test",
@@ -182,7 +189,7 @@ public class TestCaseOfLiveSource implements Serializable {
             @Override
             public void receive(long timeStamp, Event[] inEvents, Event[] removeEvents) {
                 // inEvents = [Event{timestamp=1681358165558, data=[194.198.49.98, firefox, 1062000, 1681358165556, 8/8/2100], isExpired=false}]
-//                EventPrinter.print(timeStamp, inEvents, removeEvents);
+                EventPrinter.print(timeStamp, inEvents, removeEvents);
                 linkedBlockingQueue.add(inEvents[0]);
             }
         });
@@ -191,6 +198,62 @@ public class TestCaseOfLiveSource implements Serializable {
         siddhiAppRuntime.start();
 
         siddhiAppRuntime.shutdown();
+        thread.join();
+    }
+
+    @Test
+    public void SQLtoSiddhiQLCompilerWithDebeziumMySQLForMultipleSubscriptionsTest() throws InterruptedException {
+        PersistenceStore persistenceStore = new InMemoryPersistenceStore();
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.setPersistenceStore(persistenceStore);
+
+        String SQL = "SELECT  ip@string, eventTimestamp@long FROM networkTraffic";
+
+        SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
+                "SiddhiApp-dev-test",
+                SQL,
+                new LiveSource()
+                        .addSourceComposite(new KeyValue<>("host.name","10.8.100.246:9092"))
+                        .addSourceComposite(new KeyValue<>("api.key","")),
+                new JsonMap()
+                        .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))
+                        .addMapComposite(new KeyValue<>("enclosing.element","$.properties")),
+                new JsonMapAttributes(),
+                new LogSink(),
+                new QueryInfo().setQueryName("SQL-SiddhiQL-dev-test")
+        );
+
+        String siddhiAppString = siddhiApp.getSiddhiAppStringRepresentation();
+
+        persistenceStore.save("SiddhiApp-dev-test","table.name",siddhiApp.getTableName().getBytes());
+        persistenceStore.save("SiddhiApp-dev-test","database.name","inventory".getBytes());
+
+        List<SiddhiAppRuntime> siddhiAppRuntimes = new ArrayList<>(1000);
+
+        for (int i = 0; i < 1000; i++){
+            SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
+            siddhiAppRuntime.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
+                @Override
+                public void receive(long timeStamp, Event[] inEvents, Event[] removeEvents) {
+                    // inEvents = [Event{timestamp=1681358165558, data=[194.198.49.98, firefox, 1062000, 1681358165556, 8/8/2100], isExpired=false}]
+                    EventPrinter.print(timeStamp, inEvents, removeEvents);
+                }
+            });
+
+            siddhiAppRuntimes.add(siddhiAppRuntime);
+
+        }
+
+        thread.start();
+        int i = 0;
+        for (SiddhiAppRuntime siddhiAppRuntime :
+                siddhiAppRuntimes) {
+            Thread.sleep(1000);
+            System.out.println("starting siddhi app runtime" +  ++i);
+            executorService.execute(siddhiAppRuntime::start);
+            ;
+        }
+//        siddhiAppRuntime.shutdown();
         thread.join();
     }
 }
