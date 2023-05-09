@@ -30,29 +30,27 @@ public class ActiveConsumerRecordHandler<KeyType, ValueType> {
             if(consumer == null){
                 throw new IllegalArgumentException("Consumer for message not set");
             }
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    try {
-                        ConsumerRecords<KeyType, ValueType> consumerRecords = consumerRecordsList.take();
-                        executorService.execute(() -> {
-                            for (ConsumerRecord<KeyType, ValueType> consumerRecord : consumerRecords) {
-                                String stringJsonMsg = consumerRecord.value().toString();
-                                JSONObject jsonObject = new JSONObject(stringJsonMsg);
-                                JSONObject newValue = (JSONObject) ((JSONObject) jsonObject.get("payload")).get("after");
+        Thread thread = new Thread(() -> {
+            while (true) {
+                try {
+                    ConsumerRecords<KeyType, ValueType> consumerRecords = consumerRecordsList.take();
+                    executorService.execute(() -> {
+                        for (ConsumerRecord<KeyType, ValueType> consumerRecord : consumerRecords) {
+                            String stringJsonMsg = consumerRecord.value().toString();
+                            JSONObject jsonObject = new JSONObject(stringJsonMsg);
+                            JSONObject newValue = (JSONObject) ((JSONObject) jsonObject.get("payload")).get("after");
 
-                                newValue.put("initial_data", "false"); // as required by the backend processing
+                            newValue.put("initial_data", "false"); // as required by the backend processing
 
-                                JSONObject obj = new JSONObject();
-                                obj.put("properties", newValue); // all user required data for siddhi processing inside properties section in JSON object
-                                String strMsg = obj.toString();
+                            JSONObject obj = new JSONObject();
+                            obj.put("properties", newValue); // all user required data for siddhi processing inside properties section in JSON object
+                            String strMsg = obj.toString();
 
-                                consumer.accept((ValueType) strMsg); // The Java Consumer interface is a functional interface that represents a function that consumes a value without returning any value.
-                            }
-                        });
-                    } catch (InterruptedException e) {
-                    }
+                            consumer.accept((ValueType) strMsg); // The Java Consumer interface is a functional interface that represents a function that consumes a value without returning any value.
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }
