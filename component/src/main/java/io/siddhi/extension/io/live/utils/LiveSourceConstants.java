@@ -9,5 +9,4 @@ public class LiveSourceConstants {
     public static final String APIKEY = "api.key";
     public static final String LOCATIONISENABLED = "locationIsEnabled";
     public static final String LOCATION = "location";
-    public static final String PROMETHEUS_REPORTER_NAME = "prometheus";
 }
