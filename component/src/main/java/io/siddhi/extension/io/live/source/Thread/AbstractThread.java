@@ -3,40 +3,15 @@ package io.siddhi.extension.io.live.source.Thread;
 import io.siddhi.extension.io.live.utils.Monitor;
 
 public abstract class AbstractThread implements Runnable {
-    protected final Monitor interThreadSignalMonitor;
     protected final Monitor pauseMonitor;
     protected volatile boolean isThreadRunning = true;
-    protected boolean isPaused;
+    protected volatile boolean isPaused = false;
     protected ThreadState threadState = new RunningThreadState(this);
 
-    public AbstractThread(Monitor interThreadSignalMonitor){
-        this.isPaused = false;
-        this.interThreadSignalMonitor = interThreadSignalMonitor;
+    public AbstractThread(){
         this.pauseMonitor = new Monitor();
     }
 
-    // for thread signalling
-    public void doWait(){
-        synchronized(interThreadSignalMonitor){
-            while(!interThreadSignalMonitor.isSignalled()){
-                try{
-                    interThreadSignalMonitor.wait();
-                } catch(InterruptedException e){
-
-                }
-            }
-            //clear signal and continue running.
-            interThreadSignalMonitor.setSignalled(false);
-        }
-    }
-
-    // for thread signalling
-    public void doNotify(){
-        synchronized(interThreadSignalMonitor){
-            interThreadSignalMonitor.setSignalled(true);
-            interThreadSignalMonitor.notify();
-        }
-    }
 
     public boolean isThreadRunning() {
         return isThreadRunning;

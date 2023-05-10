@@ -16,3 +16,16 @@
 /component/target/test-classes/io/siddhi/extension/io/live/source/TestCaseOfLiveSource$1.class
 /component/target/test-classes/testng.xml
 /component/target/classes/io/siddhi/extension/io/live/source/Thread/ThreadState.class
+*.jar
+*.jar
+*.class
+component/target/test-classes/io/siddhi/extension/io/live/source/TestCaseOfLiveSource$2.class
+*.class
+/component/target/.plxarc
+component/target/findbugs/findbugsXml.xml
+component/src/test/java/io/siddhi/extension/io/live/source/TestCaseOfLiveSource.java
+component/target/classes/io/siddhi/extension/io/live/source/LiveSource.class
+component/target/classes/io/siddhi/extension/io/live/source/Stream/StreamThread$1.class
+component/target/test-classes/io/siddhi/extension/io/live/source/TestCaseOfLiveSource$2.class
+component/target/test-classes/io/siddhi/extension/io/live/source/TestCaseOfLiveSource.class
+*.jar

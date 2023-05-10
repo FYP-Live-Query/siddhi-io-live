@@ -1,96 +1,62 @@
 package io.siddhi.extension.io.live.source.Stream;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.siddhi.core.stream.input.source.SourceEventListener;
-import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
-import io.siddhi.extension.io.live.utils.Monitor;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
-import org.apache.pulsar.client.api.*;
-import org.apache.tapestry5.json.JSONObject;
+import lombok.Builder;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+@Builder
 public class StreamThread extends AbstractThread {
-    private final IPulsarClientBehavior pulsarClientBehavior;
-    private final String topicOfStream;
-    private final Runtime JVMRuntime;
-    private final String subscriptionNameOfConsumer;
-    private Consumer consumer;
-    private final SourceEventListener sourceEventListener;
-    private Reader<byte[]> reader;
-
-    public StreamThread(String topicOfStream,IPulsarClientBehavior pulsarClientBehavior,String subscriptionNameOfConsumer, Monitor signalMonitor,
-                        SourceEventListener sourceEventListener) {
-        super(signalMonitor);
-        this.topicOfStream = topicOfStream;
-        this.subscriptionNameOfConsumer = subscriptionNameOfConsumer;
-        this.sourceEventListener = sourceEventListener;
-        this.pulsarClientBehavior = pulsarClientBehavior;
-        this.JVMRuntime = Runtime.getRuntime();
-    }
+    private final static Logger LOGGER = Logger.getGlobal();
+    private IStreamingEngine<String> IStreamingEngine;
+    @Builder.Default private final Runtime JVMRuntime = Runtime.getRuntime();;
+    private SourceEventListener sourceEventListener;
 
     private void unsubscribe(){
-        try {
-            reader.close();
-            System.out.println("consumer unsubscribed to the stream");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        IStreamingEngine.unsubscribe();
+    }
+
+    private void shutdown(){
+        this.threadState.stop(); // since while shutting down , still thread may wait for message, so thread should be stopped to exit from while loop
+        this.unsubscribe();
     }
 
     private void subscribe(){
-        JVMRuntime.addShutdownHook(new Thread(){ // this is simple temp fix. ideal is adding a state for handling unsubscribe when user wants
+        // this is simple temp fix. ideal is adding a state for handling unsubscribe when user wants
+        JVMRuntime.addShutdownHook(new Thread() {
             @Override
             public void run() {
-                unsubscribe();
+                shutdown(); // to handle process interruptions eg. ctrl+c
             }
         });
-        try {
 
-            PulsarClient pulsarClient = pulsarClientBehavior.getPulsarClient();
-            // Create a reader on a topic and for a specific message (and onward)
-            reader = pulsarClient.newReader()
-                    .topic(topicOfStream)
-                    .startMessageId(MessageId.latest)
-                    .create();
-
-        } catch (PulsarClientException e) {
-            e.printStackTrace();
-        }
+        IStreamingEngine.subscribe();
     }
 
     @Override
     public void run() {
 
-        subscribe();
-        while(isThreadRunning){
-            Message msg = null;
-            try {
-                if(isPaused) {
-                    System.out.println("paused - stream thread");
-                    doPause();
-                }
-                msg = reader.readNext();
-                JSONObject obj = new JSONObject();
-                String stringJsonMsg = new String(msg.getData(), StandardCharsets.UTF_8);
-                JSONObject jsonObject = new JSONObject(stringJsonMsg);
-                jsonObject.put("initial_data", "false");
-                obj.put("properties", jsonObject);
-                String str = obj.toString();
-                sourceEventListener.onEvent(str,null);
+        this.subscribe();
 
-                String s = new String(msg.getData(), StandardCharsets.UTF_8);
-            } catch (PulsarClientException e) {
-                e.printStackTrace();
+        Consumer<String> sourceEventListenerSiddhi = (msg)->{
+            sourceEventListener.onEvent(msg,null);
+        };
+
+        while(isThreadRunning){
+
+            if(isPaused) {
+                LOGGER.log(Level.INFO,"paused - stream thread");
+                doPause();
             }
+
+            IStreamingEngine.consumeMessage(sourceEventListenerSiddhi);
             
         }
 
         // clean exit if thread is stopped
-        unsubscribe();
+        this.unsubscribe();
     }
 }

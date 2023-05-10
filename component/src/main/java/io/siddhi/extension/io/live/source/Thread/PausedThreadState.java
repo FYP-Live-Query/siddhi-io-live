@@ -14,6 +14,7 @@ public class PausedThreadState extends ThreadState {
         }else{
             // TODO :  throw an exception
             System.out.println("Thread has already stopped.");
+
         }
         thread.setThreadState(new StoppedThreadState(thread));
     }

@@ -1,8 +1,5 @@
 package io.siddhi.extension.io.live.source;
 
-// import com.c8db.C8Cursor;
-// import com.c8db.C8DB;
-// import com.c8db.entity.BaseDocument;
 import io.siddhi.core.SiddhiAppRuntime;
 import io.siddhi.core.SiddhiManager;
 import io.siddhi.core.event.Event;
@@ -10,29 +7,55 @@ import io.siddhi.core.query.output.callback.QueryCallback;
 import io.siddhi.core.util.EventPrinter;
 import io.siddhi.core.util.persistence.InMemoryPersistenceStore;
 import io.siddhi.core.util.persistence.PersistenceStore;
+import lombok.SneakyThrows;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import SiddhiApp.Annotation.Attributes.JsonMapAttributes;
-import SiddhiApp.Annotation.Common.KeyValue;
-import SiddhiApp.Annotation.Info.QueryInfo;
-import SiddhiApp.Annotation.Map.JsonMap;
-import SiddhiApp.Annotation.Sink.LogSink;
-import SiddhiApp.Annotation.Source.LiveSource;
-import SiddhiApp.SiddhiApp;
-import Compiler.SiddhiAppGenerator;
+import SiddhiAppComposites.Annotation.Attributes.JsonMapAttributes;
+import SiddhiAppComposites.Annotation.Common.KeyValue;
+import SiddhiAppComposites.Annotation.Info.QueryInfo;
+import SiddhiAppComposites.Annotation.Map.JsonMap;
+import SiddhiAppComposites.Annotation.Sink.LogSink;
+import SiddhiAppComposites.Annotation.Source.LiveSource;
+import SiddhiAppComposites.SiddhiAppGenerator;
+import SiddhiAppComposites.SiddhiApp;
 
+import org.apache.pulsar.shade.org.eclipse.util.thread.ExecutorThreadPool;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Testcase of LiveSource.
  */
-public class TestCaseOfLiveSource {
+public class TestCaseOfLiveSource implements Serializable {
     private static final Logger logObj = (Logger) LogManager.getLogger(TestCaseOfLiveSource.class);
-    private AtomicInteger eventCount = new AtomicInteger(0);
+    private AtomicLong eventCount = new AtomicLong(0);
+    private AtomicLong sumtime = new AtomicLong(0);
+    private LinkedBlockingQueue<Event> linkedBlockingQueue = new LinkedBlockingQueue<>();
+    private Thread thread = new Thread(new Runnable() {
+        @SneakyThrows
+        @Override
+        public void run() {
+            while(true) {
+                Event e = linkedBlockingQueue.take();
+                long time = System.currentTimeMillis() - Long.parseLong(e.getData()[1].toString());
+                sumtime.getAndAdd(time);
+                System.out.println("Time:" + time + " avg:" + sumtime.get() / eventCount.incrementAndGet());
+            }
+
+        }
+    });
+
+    ExecutorService executorService = Executors.newFixedThreadPool(1000);
     private int waitTime = 50;
     private int timeout = 30000;
     @BeforeMethod
@@ -62,50 +85,6 @@ public class TestCaseOfLiveSource {
                 "select  ip  , browser  , date  , traffic  , eventtimestamp  \n" +
                 "insert into networktraffictableOutputStream;";
 
-//        String inStreamDefinition0 = "@App:name('TestSiddhiApp0')" +
-//                "@source(type='live',sql.query='FOR t IN NetworkTrafficTable COLLECT browser = t.browser WITH COUNT INTO value RETURN {browser: browser,totalCount: value}', " +
-//                "host.name='api-peamouth-0b57f3c7.paas.macrometa.io'," +
-//                "api.key = 'Tu_TZ0W2cR92-sr1j-l7ACA.newone.9pej9tihskpx2vYZaxubGW3sFCJLzxe55NRh7T0uk1JMYiRmHdiQsWh5JhRXXT6c418385', " +
-//                " @map(type='json', fail.on.missing.attribute='false') )" +
-//                "define stream inputStream (id String,key String,revision String,properties String);";
-
-
-//        String inStreamDefinition0 = "@app:name('SiddhiApp-dev-test')\n" +
-//                "@source(type = 'live',host.name = 'api-peamouth-0b57f3c7.paas.macrometa.io',api.key = 'Tu_TZ0W2cR92-sr1j-l7ACA.newone.9pej9tihskpx2vYZaxubGW3sFCJLzxe55NRh7T0uk1JMYiRmHdiQsWh5JhRXXT6c418385',sql.query = 'SELECT ip FROM NetworkTrafficTable',@map(type = 'json',@attributes(ip = 'ip')))\n" +
-//                "define stream NetworkTrafficTableInputStream(ip string);\n" +
-//                "@sink(type = 'log')\n" +
-//                "define stream NetworkTrafficTableOutputStream(ip string);\n" +
-//                "@info(name = 'SQL-SiddhiQL-dev-test')\n" +
-//                "from NetworkTrafficTableInputStream\n" +
-//                "select  ip  \n" +
-//                "insert into NetworkTrafficTableOutputStream;";
-
-//        String query0 = ("@sink(type = 'log')" +
-//                "define stream OutputStream (ip string);" +
-//                "@info(name = 'query0') "
-//                + "from inputStream "
-//                + "select * "
-//                + "insert into outputStream;");
-//
-//        SiddhiAppRuntime siddhiAppRuntime0 = siddhiManager.createSiddhiAppRuntime(inStreamDefinition0 + query0);
-//
-//        siddhiAppRuntime0.addCallback("query0", new QueryCallback() {
-//            @Override
-//            public void receive(long timeStamp, Event[] inEvents, Event[] removeEvents) {
-//                EventPrinter.print(timeStamp, inEvents, removeEvents);
-//                for (Event event : inEvents) {
-//                    eventCount.incrementAndGet();
-//                }
-//            }
-//        });
-//        siddhiAppRuntime0.start();
-//        String query0 = ("@sink(type = 'log')" +
-//                "define stream OutputStream (id String,key String,revision String,properties String);" +
-//                "@info(name = 'query0') "
-//                + "from inputStream "
-//                + "select * "
-//                + "insert into outputStream;");
-
         SiddhiAppRuntime siddhiAppRuntime0 = siddhiManager.createSiddhiAppRuntime(inStreamDefinition0 /*+ query0*/);
 
         siddhiAppRuntime0.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
@@ -117,15 +96,21 @@ public class TestCaseOfLiveSource {
                 }
             }
         });
+
         siddhiAppRuntime0.start();
         siddhiAppRuntime0.shutdown();
     }
+
     @Test
-    public void SQLtoSiddhiQLCompilerTest(){
+    public void SQLtoSiddhiQLCompilerWithC8DBTest(){
         PersistenceStore persistenceStore = new InMemoryPersistenceStore();
         SiddhiManager siddhiManager = new SiddhiManager();
         siddhiManager.setPersistenceStore(persistenceStore);
-        String SQL = "SELECT ip@string,browser@string,date@string, traffic@int, eventtimestamp@long FROM NetworkTrafficTable WHERE traffic@int > 9990000";
+
+        String SQL = "SELECT ip@string,browser@string,date@string, " +
+                "traffic@int, eventtimestamp@long FROM " +
+                "NetworkTrafficTable WHERE traffic@int > 9990000";
+
         SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
                 "SiddhiApp-dev-test",
                 SQL,
@@ -139,6 +124,7 @@ public class TestCaseOfLiveSource {
                 new LogSink(),
                 new QueryInfo().setQueryName("SQL-SiddhiQL-dev-test")
         );
+
         String siddhiAppString =siddhiApp.getSiddhiAppStringRepresentation();
         System.out.println(siddhiAppString);
 
@@ -153,8 +139,121 @@ public class TestCaseOfLiveSource {
                 }
             }
         });
+
         siddhiAppRuntime.start();
 
         siddhiAppRuntime.shutdown();
+    }
+
+    @Test
+    public void SQLtoSiddhiQLCompilerWithDebeziumMySQLTest() throws InterruptedException {
+        PersistenceStore persistenceStore = new InMemoryPersistenceStore();
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.setPersistenceStore(persistenceStore);
+
+        String SQL = "SELECT  ip@string,  " +
+                "eventTimestamp@long " +
+                " FROM networkTraffic";
+
+        SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
+                "SiddhiApp-dev-test",
+                SQL,
+                new LiveSource()
+                        .addSourceComposite(new KeyValue<>("host.name","10.8.100.246:9092"))
+                        .addSourceComposite(new KeyValue<>("api.key","")),
+                new JsonMap()
+                        .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))
+                        .addMapComposite(new KeyValue<>("enclosing.element","$.properties")),
+                new JsonMapAttributes(),
+                new LogSink(),
+                new QueryInfo().setQueryName("SQL-SiddhiQL-dev-test")
+        );
+
+        String siddhiAppString = siddhiApp.getSiddhiAppStringRepresentation();
+//        String siddhiAppString = "@app:name('SiddhiApp-dev-test')\n" +
+//                "@source(type = 'live',host.name = 'localhost:9092',api.key = '',sql.query = \"SELECT  ip,  browser, sum(traffic) as sum_traffic, date FROM table WHERE (browser = 'firefox' AND traffic > 20);\",@map(type = 'json',fail.on.missing.attribute = 'false',enclosing.element = '$.properties',@attributes(ip = \"ip\",sum_traffic = 'sum_traffic',browser = 'browser',traffic = 'traffic',date = 'date')))\n" +
+//                "define stream tableInputStream(ip string,browser string,traffic int,date string);\n" +
+//                "@sink(type = 'log')\n" +
+//                "define stream tableOutputStream(ip string,browser string,sum_traffic long,date string);\n" +
+//                "@info(name = 'SQL-SiddhiQL-dev-test')\n" +
+//                "from tableInputStream[( browser == 'firefox' AND traffic > 20 ) ]\n" +
+//                "select  ip  , browser  ,sum( traffic )  as sum_traffic , date  \n" +
+//                "insert into tableOutputStream;";
+        System.out.println(siddhiAppString);
+
+        persistenceStore.save("SiddhiApp-dev-test","table.name",siddhiApp.getTableName().getBytes());
+        persistenceStore.save("SiddhiApp-dev-test","database.name","inventory".getBytes());
+        SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
+
+        siddhiAppRuntime.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
+            @Override
+            public void receive(long timeStamp, Event[] inEvents, Event[] removeEvents) {
+                // inEvents = [Event{timestamp=1681358165558, data=[194.198.49.98, firefox, 1062000, 1681358165556, 8/8/2100], isExpired=false}]
+                EventPrinter.print(timeStamp, inEvents, removeEvents);
+                linkedBlockingQueue.add(inEvents[0]);
+            }
+        });
+        thread.start();
+
+        siddhiAppRuntime.start();
+
+        siddhiAppRuntime.shutdown();
+        thread.join();
+    }
+
+    @Test
+    public void SQLtoSiddhiQLCompilerWithDebeziumMySQLForMultipleSubscriptionsTest() throws InterruptedException {
+        PersistenceStore persistenceStore = new InMemoryPersistenceStore();
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.setPersistenceStore(persistenceStore);
+
+        String SQL = "SELECT  ip@string, eventTimestamp@long FROM networkTraffic";
+
+        SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
+                "SiddhiApp-dev-test",
+                SQL,
+                new LiveSource()
+                        .addSourceComposite(new KeyValue<>("host.name","10.8.100.246:9092"))
+                        .addSourceComposite(new KeyValue<>("api.key","")),
+                new JsonMap()
+                        .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))
+                        .addMapComposite(new KeyValue<>("enclosing.element","$.properties")),
+                new JsonMapAttributes(),
+                new LogSink(),
+                new QueryInfo().setQueryName("SQL-SiddhiQL-dev-test")
+        );
+
+        String siddhiAppString = siddhiApp.getSiddhiAppStringRepresentation();
+
+        persistenceStore.save("SiddhiApp-dev-test","table.name",siddhiApp.getTableName().getBytes());
+        persistenceStore.save("SiddhiApp-dev-test","database.name","inventory".getBytes());
+
+        List<SiddhiAppRuntime> siddhiAppRuntimes = new ArrayList<>(1000);
+
+        for (int i = 0; i < 1000; i++){
+            SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
+            siddhiAppRuntime.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
+                @Override
+                public void receive(long timeStamp, Event[] inEvents, Event[] removeEvents) {
+                    // inEvents = [Event{timestamp=1681358165558, data=[194.198.49.98, firefox, 1062000, 1681358165556, 8/8/2100], isExpired=false}]
+                    EventPrinter.print(timeStamp, inEvents, removeEvents);
+                }
+            });
+
+            siddhiAppRuntimes.add(siddhiAppRuntime);
+
+        }
+
+        thread.start();
+        int i = 0;
+        for (SiddhiAppRuntime siddhiAppRuntime :
+                siddhiAppRuntimes) {
+            Thread.sleep(1000);
+            System.out.println("starting siddhi app runtime" +  ++i);
+            executorService.execute(siddhiAppRuntime::start);
+            ;
+        }
+//        siddhiAppRuntime.shutdown();
+        thread.join();
     }
 }

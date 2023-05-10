@@ -1,8 +1,12 @@
 package io.siddhi.extension.io.live.source;
 
 
+import io.siddhi.core.config.SiddhiContext;
+import io.siddhi.extension.io.live.source.Stream.IStreamingEngine;
+import io.siddhi.extension.io.live.source.Stream.KafkaClient.ActiveConsumerRecodHandling.ActiveConsumerRecordHandler;
+import io.siddhi.extension.io.live.source.Stream.KafkaClient.AutoOffsetResetConfig;
+import io.siddhi.extension.io.live.source.Stream.KafkaClient.KafkaConsumerClient;
 import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
-import io.siddhi.extension.io.live.source.Stream.PulsarClient.PulsarClientTLSAuth;
 import io.siddhi.extension.io.live.source.Stream.StreamThread;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
@@ -19,10 +23,11 @@ import io.siddhi.core.util.snapshot.state.StateFactory;
 import io.siddhi.core.util.transport.OptionHolder;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
-import io.siddhi.extension.io.live.utils.Monitor;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -96,13 +101,23 @@ import java.util.UUID;
                         name = "api.key",
                         description = "The api Key",
                         type = DataType.STRING
+                ),
+                @Parameter(
+                        name = "table.name",
+                        description = "Database table name",
+                        type = DataType.STRING
+                ),
+                @Parameter(
+                        name = "database.name",
+                        description = "Database name",
+                        type = DataType.STRING
                 )
         },
         examples = {
                 @Example(
                         syntax = "@source(type = 'live', sql.query='Select * from table', " +
                                 "\nhost.name='api-varden-example'," +
-                        "\napi.key = 'apikey-xxxxxxxxx', " +
+                        "\napi.key = 'apikey-xxxxxxxxx', database.name = 'databaseName', table.name = 'TableName', " +
                         "\n@map(type='keyvalue'), @attributes(id = 'id', name = 'name'))" +
                         "\ndefine stream inputStream (id int, name string)",
                         description = "In this example, the Live source executes the select query. The" +
@@ -118,10 +133,12 @@ public class LiveSource extends Source {
     private String hostName;
     private String apiKey;
     protected SourceEventListener sourceEventListener;
+    private SiddhiContext siddhiContext;
     protected String[] requestedTransportPropertyNames;
-    private Monitor monitor;
     private StreamThread consumerThread;
-    private IPulsarClientBehavior pulsarClientTLSAuth;
+    private String fullQualifiedTableName;
+    private AbstractThread dbThread;
+    private IStreamingEngine<String> streamingClient;
     private String serviceURLOfPulsarServer = "pulsar+ssl://%s:6651";
     /**
      * The initialization method for {@link Source}, will be called before other methods. It used to validate
@@ -140,16 +157,21 @@ public class LiveSource extends Source {
     public StateFactory init(SourceEventListener sourceEventListener, OptionHolder optionHolder,
         String[] requestedTransportPropertyNames, ConfigReader configReader,
         SiddhiAppContext siddhiAppContext) {
+
             Map<String, String> deploymentConfigMap = new HashMap();
             deploymentConfigMap.putAll(configReader.getAllConfigs());
             siddhiAppName  =  siddhiAppContext.getName();
+            this.siddhiContext = siddhiAppContext.getSiddhiContext();
+            this.fullQualifiedTableName =
+                    new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"database.name"), StandardCharsets.UTF_8) + "." +
+                            new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"table.name"), StandardCharsets.UTF_8);
             this.sourceEventListener = sourceEventListener;
             this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
             this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
             this.serviceURLOfPulsarServer = String.format(serviceURLOfPulsarServer,hostName);
-            this.monitor  = new Monitor();
+
         return null;
     }
 
@@ -184,30 +206,47 @@ public class LiveSource extends Source {
      */
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
+
+        String uuid = UUID.randomUUID().toString();
+
         // TODO : give a unique subscription name
-        pulsarClientTLSAuth = new PulsarClientTLSAuth(apiKey,serviceURLOfPulsarServer);
+        streamingClient = KafkaConsumerClient.<String,String>builder()
+                            .bootstrap_server_config(hostName) // should we obtain hostname from Config management system?
+                            .key_deserializer_class_config(StringDeserializer.class)
+                            .value_deserializer_class_config(StringDeserializer.class)
+                            .group_id_config("siddhi-io-live-group-" + uuid) // new subscriber should be in new group for multicasts subscription
+                            .client_id_config("siddhi-io-live-group-client-" + uuid) // new subscriber should be in new group for multicasts subscriptio
+                            .topic("dbserver1." + this.fullQualifiedTableName) // should add table name
+                            .auto_offset_reset_config(AutoOffsetResetConfig.LATEST)
+                            .activeConsumerRecordHandler(new ActiveConsumerRecordHandler<>())
+                            .build();
 
-        consumerThread = new StreamThread(
-                "Tu_TZ0W2cR92-sr1j-l7ACA/c8local._system/c8locals.OutputStream",
-                pulsarClientTLSAuth,
-                "subscription-dev",
-                monitor,sourceEventListener
-                );
+//        dbThread = DBThread.builder()
+//                            .sourceEventListener(sourceEventListener)
+//                            .port(3306)
+//                            .selectSQL(selectQuery)
+//                            .hostName(hostName.substring(0,hostName.length() - 5))
+//                            .username("root")
+//                            .password("debezium")
+//                            .dbName(new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"database.name"), StandardCharsets.UTF_8))
+//                            .build();
+//        Thread threadDB = new Thread(dbThread, "Initial database thread");
 
-        AbstractThread dbThread = new DBThread(monitor,sourceEventListener,hostName,apiKey,"root",selectQuery);
-
+        consumerThread = StreamThread.builder()
+                            .sourceEventListener(sourceEventListener)
+                            .IStreamingEngine(streamingClient)
+                            .build();
         Thread threadCon = new Thread(consumerThread, "streaming thread");
-        Thread threadDB = new Thread(dbThread, "Initial database thread");
+
 
         threadCon.start();
-        threadDB.start();
+//        threadDB.start();
         try {
             threadCon.join();
-            threadDB.join();
+//            threadDB.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
     }
 
     /**

@@ -90,7 +90,7 @@ public class LiveSink extends Sink {
      */
     @Override
     public Class[] getSupportedInputEventClasses() {
-            return new Class[0];
+            return new Class[]{Object.class};
     }
 
     /**
