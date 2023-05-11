@@ -1,11 +1,13 @@
 package io.siddhi.extension.io.live.source.Stream;
 
 import io.siddhi.core.stream.input.source.SourceEventListener;
+import io.siddhi.extension.io.live.source.Stream.ZmqClient.Subscriber;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import lombok.Builder;
+import org.zeromq.ZContext;
+import org.zeromq.ZThread;
 
 import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Builder
@@ -14,6 +16,7 @@ public class StreamThread extends AbstractThread {
     private IStreamingEngine<String> IStreamingEngine;
     @Builder.Default private final Runtime JVMRuntime = Runtime.getRuntime();;
     private SourceEventListener sourceEventListener;
+    Subscriber subscriber;
 
     private void unsubscribe(){
         IStreamingEngine.unsubscribe();
@@ -34,29 +37,32 @@ public class StreamThread extends AbstractThread {
         });
 
         IStreamingEngine.subscribe();
+
     }
 
     @Override
     public void run() {
 
-        this.subscribe();
+//        this.subscribe();
 
         Consumer<String> sourceEventListenerSiddhi = (msg)->{
             sourceEventListener.onEvent(msg,null);
         };
+        subscriber = new Subscriber(sourceEventListenerSiddhi);
 
-        while(isThreadRunning){
+        ZContext ctx = new ZContext();
+        ZThread.fork(ctx, new Subscriber(sourceEventListenerSiddhi));
 
-            if(isPaused) {
-                LOGGER.log(Level.INFO,"paused - stream thread");
-                doPause();
-            }
-
-            IStreamingEngine.consumeMessage(sourceEventListenerSiddhi);
-            
-        }
+//        while(isThreadRunning){
+//
+//            if(isPaused) {
+//                LOGGER.log(Level.INFO,"paused - stream thread");
+//                doPause();
+//            }
+//            IStreamingEngine.consumeMessage(sourceEventListenerSiddhi);
+//        }
 
         // clean exit if thread is stopped
-        this.unsubscribe();
+//        this.unsubscribe();
     }
 }
