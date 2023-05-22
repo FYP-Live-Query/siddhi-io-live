@@ -55,7 +55,7 @@ public class TestCaseOfLiveSource implements Serializable {
         }
     });
 
-    ExecutorService executorService = Executors.newFixedThreadPool(1000);
+    ExecutorService executorService = Executors.newFixedThreadPool(3000);
     private int waitTime = 50;
     private int timeout = 30000;
     @BeforeMethod
@@ -216,7 +216,7 @@ public class TestCaseOfLiveSource implements Serializable {
         persistenceStore.save("SiddhiApp-dev-test","table.name",siddhiApp.getTableName().getBytes());
         persistenceStore.save("SiddhiApp-dev-test","database.name","inventory".getBytes());
 
-        List<SiddhiAppRuntime> siddhiAppRuntimes = new ArrayList<>(1000);
+        List<SiddhiAppRuntime> siddhiAppRuntimes = new ArrayList<>();
 
         for (int i = 0; i < 5000; i++){
             SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
@@ -238,6 +238,7 @@ public class TestCaseOfLiveSource implements Serializable {
         for (SiddhiAppRuntime siddhiAppRuntime :
                 siddhiAppRuntimes) {
             Thread.sleep(50);
+            System.out.println(siddhiAppRuntimes.size());
             System.out.println("starting siddhi app runtime" +  ++i);
             executorService.execute(siddhiAppRuntime::start);
         }

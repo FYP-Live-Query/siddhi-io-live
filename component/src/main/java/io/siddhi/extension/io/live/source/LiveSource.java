@@ -3,11 +3,8 @@ package io.siddhi.extension.io.live.source;
 
 import io.siddhi.core.config.SiddhiContext;
 import io.siddhi.extension.io.live.source.Stream.IStreamingEngine;
-import io.siddhi.extension.io.live.source.Stream.KafkaClient.ActiveConsumerRecodHandling.ActiveConsumerRecordHandler;
-import io.siddhi.extension.io.live.source.Stream.KafkaClient.AutoOffsetResetConfig;
-import io.siddhi.extension.io.live.source.Stream.KafkaClient.KafkaConsumerClient;
-import io.siddhi.extension.io.live.source.Stream.PulsarClient.IPulsarClientBehavior;
 import io.siddhi.extension.io.live.source.Stream.StreamThread;
+import io.siddhi.extension.io.live.source.Stream.ZmqClient.ZMQSubscriber;
 import io.siddhi.annotation.Example;
 import io.siddhi.annotation.Extension;
 import io.siddhi.annotation.Parameter;
@@ -23,7 +20,6 @@ import io.siddhi.core.util.snapshot.state.StateFactory;
 import io.siddhi.core.util.transport.OptionHolder;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -130,7 +126,7 @@ public class LiveSource extends Source {
     private static final Logger logger = LogManager.getLogger(LiveSource.class);
     private String siddhiAppName;
     private String selectQuery;
-    private String hostName;
+    private String databaseServerHostName;
     private String apiKey;
     protected SourceEventListener sourceEventListener;
     private SiddhiContext siddhiContext;
@@ -140,6 +136,7 @@ public class LiveSource extends Source {
     private AbstractThread dbThread;
     private IStreamingEngine<String> streamingClient;
     private String serviceURLOfPulsarServer = "pulsar+ssl://%s:6651";
+    private String ZMQBrokerServer = "tcp://%s:%d";
     /**
      * The initialization method for {@link Source}, will be called before other methods. It used to validate
      * all configurations and to get initial values.
@@ -167,10 +164,11 @@ public class LiveSource extends Source {
                             new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"table.name"), StandardCharsets.UTF_8);
             this.sourceEventListener = sourceEventListener;
             this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
-            this.hostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
+            this.databaseServerHostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
             this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
-            this.serviceURLOfPulsarServer = String.format(serviceURLOfPulsarServer,hostName);
+            this.serviceURLOfPulsarServer = String.format(serviceURLOfPulsarServer, databaseServerHostName);
+            this.ZMQBrokerServer = String.format(ZMQBrokerServer,"localhost",5555);
 
         return null;
     }
@@ -209,17 +207,23 @@ public class LiveSource extends Source {
 
         String uuid = UUID.randomUUID().toString();
 
-        // TODO : give a unique subscription name
-        streamingClient = KafkaConsumerClient.<String,String>builder()
-                            .bootstrap_server_config(hostName) // should we obtain hostname from Config management system?
-                            .key_deserializer_class_config(StringDeserializer.class)
-                            .value_deserializer_class_config(StringDeserializer.class)
-                            .group_id_config("siddhi-io-live-group-" + uuid) // new subscriber should be in new group for multicasts subscription
-                            .client_id_config("siddhi-io-live-group-client-" + uuid) // new subscriber should be in new group for multicasts subscriptio
-                            .topic("dbserver1." + this.fullQualifiedTableName) // should add table name
-                            .auto_offset_reset_config(AutoOffsetResetConfig.LATEST)
-                            .activeConsumerRecordHandler(new ActiveConsumerRecordHandler<>())
-                            .build();
+        streamingClient = ZMQSubscriber.builder()
+                .topic("dbserver1." + this.fullQualifiedTableName)
+                .databaseServer(databaseServerHostName)
+                .ZMQBrokerServer(ZMQBrokerServer)
+                .build();
+
+
+//        streamingClient = KafkaConsumerClient.<String,String>builder()
+//                            .bootstrap_server_config(hostName) // should we obtain hostname from Config management system?
+//                            .key_deserializer_class_config(StringDeserializer.class)
+//                            .value_deserializer_class_config(StringDeserializer.class)
+//                            .group_id_config("siddhi-io-live-group-" + uuid) // new subscriber should be in new group for multicasts subscription
+//                            .client_id_config("siddhi-io-live-group-client-" + uuid) // new subscriber should be in new group for multicasts subscriptio
+//                            .topic("dbserver1." + this.fullQualifiedTableName) // should add table name
+//                            .auto_offset_reset_config(AutoOffsetResetConfig.LATEST)
+//                            .activeConsumerRecordHandler(new ActiveConsumerRecordHandler<>())
+//                            .build();
 
 //        dbThread = DBThread.builder()
 //                            .sourceEventListener(sourceEventListener)
