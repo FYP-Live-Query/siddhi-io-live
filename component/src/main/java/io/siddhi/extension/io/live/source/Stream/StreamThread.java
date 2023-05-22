@@ -34,6 +34,7 @@ public class StreamThread extends AbstractThread {
         });
 
         IStreamingEngine.subscribe();
+
     }
 
     @Override
@@ -41,7 +42,7 @@ public class StreamThread extends AbstractThread {
 
         this.subscribe();
 
-        Consumer<String> sourceEventListenerSiddhi = (msg)->{
+        Consumer<String> sourceEventListenerSiddhi = (msg)-> {
             sourceEventListener.onEvent(msg,null);
         };
 
@@ -51,9 +52,7 @@ public class StreamThread extends AbstractThread {
                 LOGGER.log(Level.INFO,"paused - stream thread");
                 doPause();
             }
-
             IStreamingEngine.consumeMessage(sourceEventListenerSiddhi);
-            
         }
 
         // clean exit if thread is stopped

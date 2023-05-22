@@ -6,19 +6,12 @@ import org.apache.tapestry5.json.JSONObject;
 
 import java.util.concurrent.*;
 import java.util.function.Consumer;
-import com.google.common.reflect.TypeToken;
 import java.lang.reflect.Type;
 
 public class ActiveConsumerRecordHandler<KeyType, ValueType> {
     private final BlockingQueue<ConsumerRecords<KeyType, ValueType>> consumerRecordsList;
     private java.util.function.Consumer<ValueType> consumer;
     private final ExecutorService executorService;
-    private final TypeToken<ValueType> typeToken = new TypeToken<ValueType>(getClass()) { };
-    private final Type type = typeToken.getType(); // or getRawType() to return Class<? super T>
-
-    public Type getType() {
-        return type;
-    }
 
     public ActiveConsumerRecordHandler() {
         this.consumerRecordsList = new LinkedBlockingQueue<>();
@@ -41,10 +34,10 @@ public class ActiveConsumerRecordHandler<KeyType, ValueType> {
                             JSONObject newValue = (JSONObject) ((JSONObject) jsonObject.get("payload")).get("after");
 
                             newValue.put("initial_data", "false"); // as required by the backend processing
-
                             JSONObject obj = new JSONObject();
                             obj.put("properties", newValue); // all user required data for siddhi processing inside properties section in JSON object
                             String strMsg = obj.toString();
+                            System.out.println(strMsg);
 
                             consumer.accept((ValueType) strMsg); // The Java Consumer interface is a functional interface that represents a function that consumes a value without returning any value.
                         }
