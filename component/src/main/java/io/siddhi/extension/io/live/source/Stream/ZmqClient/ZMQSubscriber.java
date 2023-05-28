@@ -28,15 +28,16 @@ public class ZMQSubscriber implements  IStreamingEngine<String>
 
     private void start()
     {
-        activeMessageHandler.setConsumer(consumer);
-        activeMessageHandler.start();
+//        activeMessageHandler.setConsumer(consumer);
+//        activeMessageHandler.start();
 
         while (!interrupted.get()) {
             String stringJsonMsg = subscriber.recvStr();
             JSONObject jsonObject = new JSONObject("{" + stringJsonMsg + "}");
             JSONObject newValue = ((JSONObject) (jsonObject.get(topic)));
             String value = newValue.toString();
-            activeMessageHandler.addMessage(value);
+            consumer.accept(value);
+//            activeMessageHandler.addMessage(value);
         }
 
         LOGGER.log(Level.INFO, String.format("Unsubscribed to ZMQ local broker topic [%s]", topic));
