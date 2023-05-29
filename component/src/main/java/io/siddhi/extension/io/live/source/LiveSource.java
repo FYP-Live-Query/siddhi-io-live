@@ -221,22 +221,18 @@ public class LiveSource extends Source {
         serverNames.put("ASIA", "20.171.111.32");
         serverNames.put("AFRICA", "20.171.111.32");
         if(locationIsEnabled){
-            hostName = serverNames.get("none");
-        }
-        else{
             hostName = serverNames.get(location);
-        }
-        // TODO : give a unique subscription name
-        streamingClient = KafkaConsumerClient.<String,String>builder()
-                            .bootstrap_server_config(hostName) // should we obtain hostname from Config management system?
-                            .key_deserializer_class_config(StringDeserializer.class)
-                            .value_deserializer_class_config(StringDeserializer.class)
-                            .group_id_config("siddhi-io-live-group-" + uuid) // new subscriber should be in new group for multicasts subscription
-                            .client_id_config("siddhi-io-live-group-client-" + uuid) // new subscriber should be in new group for multicasts subscriptio
-                            .topic("dbserver1." + this.fullQualifiedTableName) // should add table name
-                            .auto_offset_reset_config(AutoOffsetResetConfig.LATEST)
-                            .activeConsumerRecordHandler(new ActiveConsumerRecordHandler<>())
-                            .build();
+            // TODO : give a unique subscription name
+            streamingClient = KafkaConsumerClient.<String,String>builder()
+                    .bootstrap_server_config(hostName) // should we obtain hostname from Config management system?
+                    .key_deserializer_class_config(StringDeserializer.class)
+                    .value_deserializer_class_config(StringDeserializer.class)
+                    .group_id_config("siddhi-io-live-group-" + uuid) // new subscriber should be in new group for multicasts subscription
+                    .client_id_config("siddhi-io-live-group-client-" + uuid) // new subscriber should be in new group for multicasts subscriptio
+                    .topic("dbserver1." + this.fullQualifiedTableName) // should add table name
+                    .auto_offset_reset_config(AutoOffsetResetConfig.LATEST)
+                    .activeConsumerRecordHandler(new ActiveConsumerRecordHandler<>())
+                    .build();
 //        System.out.println("server "+serverName);
 //        dbThread = DBThread.builder()
 //                            .sourceEventListener(sourceEventListener)
@@ -249,21 +245,26 @@ public class LiveSource extends Source {
 //                            .build();
 //        Thread threadDB = new Thread(dbThread, "Initial database thread");
 
-        consumerThread = StreamThread.builder()
-                            .sourceEventListener(sourceEventListener)
-                            .IStreamingEngine(streamingClient)
-                            .build();
-        Thread threadCon = new Thread(consumerThread, "streaming thread");
+            consumerThread = StreamThread.builder()
+                    .sourceEventListener(sourceEventListener)
+                    .IStreamingEngine(streamingClient)
+                    .build();
+            Thread threadCon = new Thread(consumerThread, "streaming thread");
 
 
-        threadCon.start();
+            threadCon.start();
 //        threadDB.start();
-        try {
-            threadCon.join();
+            try {
+                threadCon.join();
 //            threadDB.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
+        else{
+
+        }
+
     }
 
     /**
