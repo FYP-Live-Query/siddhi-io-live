@@ -19,6 +19,7 @@ import io.siddhi.core.util.snapshot.state.State;
 import io.siddhi.core.util.snapshot.state.StateFactory;
 import io.siddhi.core.util.transport.OptionHolder;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
+import io.siddhi.extension.io.live.utils.LiveExtensionConfig;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -136,7 +137,7 @@ public class LiveSource extends Source {
     private AbstractThread dbThread;
     private IStreamingEngine<String> streamingClient;
     private String serviceURLOfPulsarServer = "pulsar+ssl://%s:6651";
-    private String ZMQBrokerServer = "tcp://%s:%d";
+    private String ZMQBrokerServer = "tcp://%s";
     /**
      * The initialization method for {@link Source}, will be called before other methods. It used to validate
      * all configurations and to get initial values.
@@ -157,6 +158,7 @@ public class LiveSource extends Source {
 
             Map<String, String> deploymentConfigMap = new HashMap();
             deploymentConfigMap.putAll(configReader.getAllConfigs());
+            LiveExtensionConfig liveExtensionConfig = new LiveExtensionConfig.LiveExtensionConfigBuilder().build();
             siddhiAppName  =  siddhiAppContext.getName();
             this.siddhiContext = siddhiAppContext.getSiddhiContext();
             this.fullQualifiedTableName =
@@ -164,11 +166,14 @@ public class LiveSource extends Source {
                             new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"table.name"), StandardCharsets.UTF_8);
             this.sourceEventListener = sourceEventListener;
             this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
-            this.databaseServerHostName = optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue();
-            this.apiKey = optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue();
+            this.databaseServerHostName = liveExtensionConfig.getProperty("databaseServerHost") == null ?
+                    optionHolder.validateAndGetOption(LiveSourceConstants.HOSTNAME).getValue() : liveExtensionConfig.getProperty("databaseServerHost");
+            this.apiKey = liveExtensionConfig.getProperty("apiKey") == null ?
+                    optionHolder.validateAndGetOption(LiveSourceConstants.APIKEY).getValue() : liveExtensionConfig.getProperty("apiKey");
             this.requestedTransportPropertyNames = requestedTransportPropertyNames.clone();
             this.serviceURLOfPulsarServer = String.format(serviceURLOfPulsarServer, databaseServerHostName);
-            this.ZMQBrokerServer = String.format(ZMQBrokerServer,"localhost",5555);
+            this.ZMQBrokerServer = liveExtensionConfig.getProperty("ZMQBrokerServerHost") == null ?
+                    String.format(ZMQBrokerServer,"localhost:5555") : String.format(ZMQBrokerServer,liveExtensionConfig.getProperty("ZMQBrokerServerHost"));
 
         return null;
     }
