@@ -13,7 +13,7 @@ public class PausedThreadState extends ThreadState {
             thread.setThreadRunning(false);
         }else{
             // TODO :  throw an exception
-            System.out.println("Thread has already stopped.");
+            LOGGER.info("Thread has already stopped.");
 
         }
         thread.setThreadState(new StoppedThreadState(thread));
@@ -23,20 +23,20 @@ public class PausedThreadState extends ThreadState {
     public void pause() {
         // TODO :  throw an exception
         // Do nothing or throw exception saying thread is already paused
-        System.out.println("Thread has already paused");
+        LOGGER.info("Thread has already paused");
     }
 
     @Override
     public void resume() {
         // resume Thread
         if(thread.isPaused()){
-            System.out.println("Resuming Thread - thread state p");
+            LOGGER.info("Resuming Thread - thread state p");
             thread.setPaused(false);
             thread.doResume();
 
         }else{
             // TODO :  throw an exception
-            System.out.println("Thread has already resumed.");
+            LOGGER.info("Thread has already resumed.");
         }
         thread.setThreadState(new RunningThreadState(thread));
     }

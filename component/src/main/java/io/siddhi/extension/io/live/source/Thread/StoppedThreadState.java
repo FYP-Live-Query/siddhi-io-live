@@ -8,16 +8,16 @@ public class StoppedThreadState extends ThreadState {
 
     @Override
     public void stop() {
-        System.out.println("Thread has already stopped."); // TODO :  throw an exception
+        LOGGER.info("Thread has already stopped."); // TODO :  throw an exception
     }
 
     @Override
     public void pause() {
-        System.out.println("Thread has already stopped."); // TODO :  throw an exception
+        LOGGER.info("Thread has already stopped."); // TODO :  throw an exception
     }
 
     @Override
     public void resume() {
-        System.out.println("Thread has stopped."); // TODO :  throw an exception
+        LOGGER.info("Thread has stopped."); // TODO :  throw an exception
     }
 }

@@ -28,7 +28,7 @@
 //
 //        while (cursor.hasNext() && isThreadRunning) {
 //            if(isPaused) {
-//                System.out.println("paused - DB thread");
+//                LOGGER.info("paused - DB thread");
 //                doPause();
 //            }
 //            Gson gson = new Gson();
@@ -77,11 +77,11 @@ public class DBThread extends AbstractThread {
             statement = connection.createStatement();
             // Execute the selectSQL query and process the results
             String select = selectSQL.replaceAll("@\\w+", "");
-            System.out.println("query: "+select);
+            LOGGER.info("query: "+select);
             resultSet = statement.executeQuery(select);
             while (resultSet.next() && isThreadRunning) {
                 if (isPaused) {
-                    System.out.println("paused - DB thread");
+                    LOGGER.info("paused - DB thread");
                     doPause();
                 }
                 // Convert the row to a JSON object and add the "initial_data" property
@@ -90,7 +90,7 @@ public class DBThread extends AbstractThread {
                 for (int i = 1; i <= numColumns; i++) {
                     String columnName = resultSet.getMetaData().getColumnName(i);
                     Object columnValue = resultSet.getObject(i);
-                    System.out.println("col"+columnValue);
+                    LOGGER.info("col"+columnValue);
                     jsonObject.put(columnName, columnValue);
                 }
                 jsonObject.put("initial_data", "true");
