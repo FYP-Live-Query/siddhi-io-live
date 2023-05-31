@@ -1,0 +1,203 @@
+// ------------------------------------------------------------------
+// Transitive dependencies of this project determined from the
+// maven pom organized by organization.
+// ------------------------------------------------------------------
+
+Siddhi IO Live extension
+
+
+From: 'an unknown organization'
+  - c3p0:JDBC DataSources/Resource Pools (http://c3p0.sourceforge.net) c3p0:c3p0:jar:0.9.1.1
+    License: GNU LESSER GENERAL PUBLIC LICENSE  (http://www.gnu.org/licenses/lgpl.txt)
+  - jcommander (http://jcommander.org) com.beust:jcommander:jar:1.64
+    License: Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
+  - compiler (http://github.com/spullara/mustache.java) com.github.spullara.mustache.java:compiler:jar:0.9.6
+    License: Apache License 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
+  - FindBugs-jsr305 (http://findbugs.sourceforge.net/) com.google.code.findbugs:jsr305:jar:1.3.9
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Gson (https://github.com/google/gson/gson) com.google.code.gson:gson:jar:2.9.0
+    License: Apache-2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - error-prone annotations (http://nexus.sonatype.org/oss-repository-hosting.html/error_prone_parent/error_prone_annotations) com.google.errorprone:error_prone_annotations:jar:2.0.18
+    License: Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Guava: Google Core Libraries for Java (https://github.com/google/guava/guava) com.google.guava:guava:bundle:23.0
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - J2ObjC Annotations (https://github.com/google/j2objc/) com.google.j2objc:j2objc-annotations:jar:1.1
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Protocol Buffers [Core] (https://developers.google.com/protocol-buffers/protobuf-java/) com.google.protobuf:protobuf-java:bundle:3.11.4
+    License: 3-Clause BSD License  (https://opensource.org/licenses/BSD-3-Clause)
+  - project ':json-path' (https://github.com/jayway/JsonPath) com.jayway.jsonpath:json-path:jar:2.4.0
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - eu.neilalexander:jnacl (https://github.com/neilalexander/jnacl) eu.neilalexander:jnacl:jar:1.0.0
+    License: The BSD 2-Clause License  (http://opensource.org/licenses/bsd-license.php)
+  - Metrics Core (http://metrics.codahale.com/metrics-core/) io.dropwizard.metrics:metrics-core:bundle:3.1.0
+    License: Apache License 2.0  (http://www.apache.org/licenses/LICENSE-2.0.html)
+  - JVM Integration for Metrics (http://metrics.dropwizard.io/metrics-jvm/) io.dropwizard.metrics:metrics-jvm:bundle:3.2.5
+    License: Apache License 2.0  (http://www.apache.org/licenses/LICENSE-2.0.html)
+  - Siddhi Annotations  io.siddhi:siddhi-annotations:bundle:5.0.0
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Siddhi Core  io.siddhi:siddhi-core:bundle:5.0.0
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Siddhi Query API  io.siddhi:siddhi-query-api:bundle:5.0.0
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Siddhi Query Compiler  io.siddhi:siddhi-query-compiler:bundle:5.0.0
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Bean Validation API (http://beanvalidation.org) javax.validation:validation-api:jar:1.1.0.Final
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - "Java Concurrency in Practice" book annotations (http://jcip.net/) net.jcip:jcip-annotations:jar:1.0
+
+  - Apache Kafka (https://kafka.apache.org) org.apache.kafka:kafka-clients:jar:3.4.0
+    License: The Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache log4j  org.apache.log4j.wso2:log4j:bundle:1.2.17.wso2v1
+
+  - Bouncy Castle PKIX, CMS, EAC, TSP, PKCS, OCSP, CMP, and CRMF APIs (https://www.bouncycastle.org/java.html) org.bouncycastle:bcpkix-jdk15on:jar:1.69
+    License: Bouncy Castle Licence  (https://www.bouncycastle.org/licence.html)
+  - Bouncy Castle Provider (https://www.bouncycastle.org/java.html) org.bouncycastle:bcprov-ext-jdk15on:jar:1.69
+    License: Bouncy Castle Licence  (https://www.bouncycastle.org/licence.html)
+  - Bouncy Castle Provider (https://www.bouncycastle.org/java.html) org.bouncycastle:bcprov-jdk15on:jar:1.69
+    License: Bouncy Castle Licence  (https://www.bouncycastle.org/licence.html)
+  - Bouncy Castle ASN.1 Extension and Utility APIs (https://www.bouncycastle.org/java.html) org.bouncycastle:bcutil-jdk15on:jar:1.69
+    License: Bouncy Castle Licence  (https://www.bouncycastle.org/licence.html)
+  - org.conscrypt:conscrypt-openjdk-uber (https://conscrypt.org/) org.conscrypt:conscrypt-openjdk-uber:jar:2.5.2
+    License: Apache 2  (https://www.apache.org/licenses/LICENSE-2.0)
+  - org.eclipse.osgi.services  org.eclipse.osgi:org.eclipse.osgi.services:jar:3.3.100.v20130513-1956
+
+  - HdrHistogram (http://hdrhistogram.github.io/HdrHistogram/) org.hdrhistogram:HdrHistogram:bundle:2.1.10
+    License: Public Domain, per Creative Commons CC0  (http://creativecommons.org/publicdomain/zero/1.0/)    License: BSD-2-Clause  (https://opensource.org/licenses/BSD-2-Clause)
+  - JSON in Java (https://github.com/douglascrockford/JSON-java) org.json:json:bundle:20210307
+    License: The JSON License  (http://json.org/license.html)
+  - LZ4 and xxHash (https://github.com/lz4/lz4-java) org.lz4:lz4-java:jar:1.8.0
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Quartz Enterprise Job Scheduler (http://quartz-scheduler.org/quartz/) org.quartz-scheduler:quartz:jar:2.1.1
+    License: Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
+  - quartz.wso2 (http://wso2.org) org.quartz-scheduler.wso2:quartz:bundle:2.1.1.wso2v1
+
+  - org.eclipse.osgi  org.wso2.eclipse.osgi:org.eclipse.osgi:jar:3.11.0.v20160603-1336
+
+  - org.eclipse.osgi.services  org.wso2.eclipse.osgi:org.eclipse.osgi.services:jar:3.5.100.v20160504-1419
+
+  - WSO2 Carbon - Orbit - LMAX Disruptor (http://wso2.org) org.wso2.orbit.com.lmax:disruptor:bundle:3.4.2.wso2v1
+
+  - WSO2 Carbon Orbit - Tapestry JSON (http://wso2.org) org.wso2.orbit.org.apache.tapestry:tapestry-json:bundle:5.4.1.wso2v1
+
+  - SnakeYAML (http://www.snakeyaml.org) org.yaml:snakeyaml:bundle:1.24
+    License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - JeroMQ (https://github.com/zeromq/jeromq) org.zeromq:jeromq:jar:0.6.0-SNAPSHOT
+    License: Mozilla Public License version 2.0  (https://www.mozilla.org/en-US/MPL/2.0)
+
+From: 'ANTLR' (http://www.antlr.org)
+  - ANTLR 4 Runtime (http://www.antlr.org/antlr4-runtime) org.antlr:antlr4-runtime:jar:4.7.2
+    License: The BSD License  (http://www.antlr.org/license.html)
+
+From: 'Apache Software Foundation' (http://www.apache.org)
+  - Apache Log4j (http://logging.apache.org/log4j/1.2/) log4j:log4j:bundle:1.2.17
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'Apache Software Foundation' (http://www.apache.org/)
+  - Apache Pulsar :: Bouncy Castle :: BC (https://github.com/apache/pulsar/bouncy-castle-parent/bouncy-castle-bc) org.apache.pulsar:bouncy-castle-bc:jar:2.10.0
+    License: Apache License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Pulsar Client Java (https://github.com/apache/pulsar/pulsar-client) org.apache.pulsar:pulsar-client:jar:2.10.0
+    License: Apache License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Pulsar Client Admin :: API (https://github.com/apache/pulsar/pulsar-client-admin-api) org.apache.pulsar:pulsar-client-admin-api:jar:2.10.0
+    License: Apache License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Pulsar Client :: API (https://github.com/apache/pulsar/pulsar-client-api) org.apache.pulsar:pulsar-client-api:jar:2.10.0
+    License: Apache License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'ArangoDB GmbH' (https://www.arangodb.com)
+  - ArangoDB Velocypack (http://maven.apache.org) com.arangodb:velocypack:jar:1.4.3
+    License: Apache License 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
+
+From: 'Atteo' (http://www.atteo.com)
+  - Atteo Class Index (http://atteo.org/static/classindex/classindex) org.atteo.classindex:classindex:jar:3.6
+    License: Apache License, Version 2.0 
+
+From: 'Chemouni Uriel' (http://www.minidev.net/)
+  - ASM based accessors helper used by json-smart (http://accessors-smart/) net.minidev:accessors-smart:bundle:1.1
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - JSON Small and Fast Parser (http://json-smart/) net.minidev:json-smart:bundle:2.2
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'Codehaus' (http://codehaus.org)
+  - Animal Sniffer Annotations (http://mojo.codehaus.org/animal-sniffer/animal-sniffer-annotations) org.codehaus.mojo:animal-sniffer-annotations:jar:1.14
+    License: MIT license  (http://www.opensource.org/licenses/mit-license.php)
+
+From: 'com.github.luben'
+  - zstd-jni (https://github.com/luben/zstd-jni) com.github.luben:zstd-jni:jar:1.5.2-1
+    License: BSD 2-Clause License  (https://opensource.org/licenses/BSD-2-Clause)
+
+From: 'FasterXML' (http://fasterxml.com/)
+  - Jackson-annotations (http://github.com/FasterXML/jackson) com.fasterxml.jackson.core:jackson-annotations:bundle:2.9.6
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Jackson-core (https://github.com/FasterXML/jackson-core) com.fasterxml.jackson.core:jackson-core:bundle:2.9.6
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - jackson-databind (http://github.com/FasterXML/jackson) com.fasterxml.jackson.core:jackson-databind:bundle:2.9.6
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'JBoss by Red Hat' (http://www.jboss.org/)
+  - mvel (http://mvel.codehaus.org/) org.mvel:mvel2:jar:2.4.4.Final
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'JSQLParser'
+  - JSQLParser library (https://github.com/JSQLParser/JSqlParser) com.github.jsqlparser:jsqlparser:bundle:4.4
+    License: GNU Library or Lesser General Public License (LGPL) V2.1  (http://www.gnu.org/licenses/lgpl-2.1.html)    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'ObjectWeb' (http://www.objectweb.org/)
+  - ASM Core (http://asm.objectweb.org/asm/) org.ow2.asm:asm:jar:5.0.3
+    License: BSD  (http://asm.objectweb.org/license.html)
+
+From: 'Oracle' (http://www.oracle.com)
+  - JavaBeans Activation Framework (http://java.net/all/javax.activation/) com.sun.activation:javax.activation:jar:1.2.0
+    License: CDDL/GPLv2+CE  (https://github.com/javaee/activation/blob/master/LICENSE.txt)
+
+From: 'Oracle Corporation' (http://www.oracle.com)
+  - MySQL Connector/J (http://dev.mysql.com/doc/connector-j/en/) mysql:mysql-connector-java:jar:8.0.27
+    License: The GNU General Public License, v2 with FOSS exception 
+
+From: 'Oracle Corporation' (http://www.oracle.com/)
+  - javax.ws.rs-api (http://jax-rs-spec.java.net) javax.ws.rs:javax.ws.rs-api:jar:2.1
+    License: CDDL 1.1  (https://oss.oracle.com/licenses/CDDL+GPL-1.1)    License: GPL2 w/ CPE  (https://oss.oracle.com/licenses/CDDL+GPL-1.1)
+
+From: 'OSGi Alliance' (http://www.osgi.org)
+  - org.osgi.core (http://www.osgi.org) org.osgi:org.osgi.core:jar:6.0.0
+    License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
+
+From: 'QOS.ch' (http://www.qos.ch)
+  - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.12
+    License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
+  - SLF4J Simple Binding (http://www.slf4j.org) org.slf4j:slf4j-simple:jar:1.7.12
+    License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
+
+From: 'The Apache Software Foundation' (http://www.apache.org/)
+  - Apache Commons Logging (http://commons.apache.org/proper/commons-logging/) commons-logging:commons-logging:jar:1.2
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache HttpClient (http://hc.apache.org/httpcomponents-client) org.apache.httpcomponents:httpclient:jar:4.5.13
+    License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache HttpCore (http://hc.apache.org/httpcomponents-core-ga) org.apache.httpcomponents:httpcore:jar:4.4.13
+    License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'The Apache Software Foundation' (https://www.apache.org/)
+  - Apache Commons Codec (http://commons.apache.org/proper/commons-codec/) commons-codec:commons-codec:jar:1.11
+    License: Apache License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Apache Commons Lang (https://commons.apache.org/proper/commons-lang/) org.apache.commons:commons-lang3:jar:3.12.0
+    License: Apache License, Version 2.0  (https://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'WSO2' (http://www.wso2.org/)
+  - Siddhi Extension - JSON Mapper (http://www.wso2.org/siddhi-map-json-parent/siddhi-map-json/) io.siddhi.extension.map.json:siddhi-map-json:bundle:5.0.2
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - WSO2 Carbon Kernel - Core (http://wso2.com) org.wso2.carbon:org.wso2.carbon.core:bundle:5.2.0
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - Carbon Configuration (http://wso2.com) org.wso2.carbon.config:org.wso2.carbon.config:bundle:2.1.13
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - WSO2 Carbon Metrics Core (http://wso2.com/components/org.wso2.carbon.metrics.core) org.wso2.carbon.metrics:org.wso2.carbon.metrics.core:bundle:2.3.15
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - WSO2 Carbon Secure Vault - Component (http://wso2.com) org.wso2.carbon.secvault:org.wso2.carbon.secvault:bundle:5.0.13
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - WSO2 Carbon - Utils (http://wso2.com) org.wso2.carbon.utils:org.wso2.carbon.utils:bundle:2.0.2
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'xerial.org' (https://github.com/xerial/snappy-java)
+  - snappy-java (https://github.com/xerial/snappy-java) org.xerial.snappy:snappy-java:bundle:1.1.8.4
+    License: Apache-2.0  (https://www.apache.org/licenses/LICENSE-2.0.html)
+
+
+
+

@@ -121,7 +121,7 @@
             <artifactId>SQLtoSiddhiQL</artifactId>
             <version>0.9.9</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/sqltosiddhiql-0.9.9-SNAPSHOT.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/sqltosiddhiql-0.9.10-SNAPSHOT.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
@@ -195,6 +195,7 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
+                    <!--suppress UnresolvedMavenProperty -->
                     <argLine>${surefireArgLine} -ea -Xmx512m</argLine>
                 </configuration>
             </plugin>
@@ -252,6 +253,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.10</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
