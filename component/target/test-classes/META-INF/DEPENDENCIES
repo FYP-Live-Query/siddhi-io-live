@@ -27,6 +27,8 @@ From: 'an unknown organization'
     License: 3-Clause BSD License  (https://opensource.org/licenses/BSD-3-Clause)
   - project ':json-path' (https://github.com/jayway/JsonPath) com.jayway.jsonpath:json-path:jar:2.4.0
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - eu.neilalexander:jnacl (https://github.com/neilalexander/jnacl) eu.neilalexander:jnacl:jar:1.0.0
+    License: The BSD 2-Clause License  (http://opensource.org/licenses/bsd-license.php)
   - Metrics Core (http://metrics.codahale.com/metrics-core/) io.dropwizard.metrics:metrics-core:bundle:3.1.0
     License: Apache License 2.0  (http://www.apache.org/licenses/LICENSE-2.0.html)
   - JVM Integration for Metrics (http://metrics.dropwizard.io/metrics-jvm/) io.dropwizard.metrics:metrics-jvm:bundle:3.2.5
@@ -79,6 +81,8 @@ From: 'an unknown organization'
 
   - SnakeYAML (http://www.snakeyaml.org) org.yaml:snakeyaml:bundle:1.24
     License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+  - JeroMQ (https://github.com/zeromq/jeromq) org.zeromq:jeromq:jar:0.6.0-SNAPSHOT
+    License: Mozilla Public License version 2.0  (https://www.mozilla.org/en-US/MPL/2.0)
 
 From: 'ANTLR' (http://www.antlr.org)
   - ANTLR 4 Runtime (http://www.antlr.org/antlr4-runtime) org.antlr:antlr4-runtime:jar:4.7.2

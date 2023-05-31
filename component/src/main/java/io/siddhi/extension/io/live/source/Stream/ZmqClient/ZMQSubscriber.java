@@ -36,6 +36,7 @@ public class ZMQSubscriber implements  IStreamingEngine<String>
             JSONObject jsonObject = new JSONObject("{" + stringJsonMsg + "}");
             JSONObject newValue = ((JSONObject) (jsonObject.get(topic)));
             String value = newValue.toString();
+            System.out.println("Value: " + value);
             consumer.accept(value);
 //            activeMessageHandler.addMessage(value);
         }

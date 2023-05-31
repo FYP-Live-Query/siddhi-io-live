@@ -163,7 +163,7 @@ public class LiveSource extends Source {
             this.siddhiContext = siddhiAppContext.getSiddhiContext();
             this.fullQualifiedTableName =
                     new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"database.name"), StandardCharsets.UTF_8) + "." +
-                            new String(siddhiContext.getPersistenceStore().load(siddhiAppName,"table.name"), StandardCharsets.UTF_8);
+                            optionHolder.validateAndGetOption(LiveSourceConstants.TABLENAME).getValue();
             this.sourceEventListener = sourceEventListener;
             this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
             this.databaseServerHostName = liveExtensionConfig.getProperty("databaseServerHost") == null ?
@@ -250,12 +250,12 @@ public class LiveSource extends Source {
 
         threadCon.start();
 //        threadDB.start();
-        try {
-            threadCon.join();
-//            threadDB.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            threadCon.join();
+////            threadDB.join();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
     }
 
     /**
