@@ -135,7 +135,7 @@ public class TestCaseOfLiveSource implements Serializable {
                     eventCount.incrementAndGet();
                 }
 
-                if (eventCount.get() > 50){
+                if (eventCount.get() > 50) {
                     siddhiAppRuntime.shutdown();
                 }
             }
@@ -157,51 +157,37 @@ public class TestCaseOfLiveSource implements Serializable {
         SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
                 "SiddhiApp-dev-test",
                 SQL,
-                new LiveSource()
-                        .addSourceComposite(new KeyValue<>("host.name","10.8.100.246:9092"))
-                        .addSourceComposite(new KeyValue<>("api.key","")),
+                new LiveSource(),
                 new JsonMap()
                         .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))
                         .addMapComposite(new KeyValue<>("enclosing.element","$.properties")),
                 new JsonMapAttributes(),
-                new LogSink().addSourceComposite(new KeyValue<>("priority","DEBUG")),
-                new QueryInfo().setQueryName("default-name")
+                new LogSink()
+                        .addSourceComposite(new KeyValue<>("priority","DEBUG")),
+                new QueryInfo().setQueryName("SQL-SiddhiQL-dev-test")
         );
 
-//        String siddhiAppString = "@app:name(\"SiddhiApp-dev-test\")\n" +
-//                "@source(type = \"live\",table.name = \"customers\", host.name=\"10.8.100.246:9092\", sql.query = \"SELECT customers.first_name , addresses.city FROM customers JOIN addresses ON customers.id = addresses.customer_id\",@map(type = \"json\",fail.on.missing.attribute= \"false\", enclosing.element = \"$.properties\", @attributes(first_name = \"first_name\",id = \"id\",city = \"city\",customer_id = \"customer_id\")))\n" +
-//                "define stream customersInputStream(first_name string,id int);\n" +
-//                "@source(type = \"live\",table.name = \"addresses\", host.name=\"10.8.100.246:9092\", sql.query = \"SELECT customers.first_name , addresses.city FROM customers JOIN addresses ON customers.id = addresses.customer_id\",@map(type = \"json\",fail.on.missing.attribute = \"false\", enclosing.element = \"$.properties\", @attributes(first_name = \"first_name\",id = \"id\",city = \"city\",customer_id = \"customer_id\")))\n" +
-//                "define stream addressesInputStream(city string,customer_id int);\n" +
-//                "@sink(type = \"log\")\n" +
-//                "define stream customersOutputStream(first_name string,city string);\n" +
-//                "@info(name = \"default-name\")\n" +
-//                "from customersInputStream#window.length(3) as customers\n" +
-//                "join addressesInputStream#window.length(3) as addresses\n" +
-//                "on customers.id == addresses.customer_id\n" +
-//                "select customers.first_name, addresses.city\n" +
-//                "insert into customersOutputStream;\n";
         String siddhiAppString = siddhiApp.getSiddhiAppStringRepresentation();
-        System.out.println(siddhiAppString);
-        persistenceStore.save("SiddhiApp-dev-test","table.name",siddhiApp.getTableName().getBytes());
-        persistenceStore.save("SiddhiApp-dev-test","database.name","inventory".getBytes());
+        
         SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
 
-        siddhiAppRuntime.addCallback("default-name", new QueryCallback() {
+        siddhiAppRuntime.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
             @Override
             public void receive(long timeStamp, Event[] inEvents, Event[] removeEvents) {
-                EventPrinter.print(timeStamp, inEvents, removeEvents);
-                // inEvents = [Event{timestamp=1681358165558, data=[194.198.49.98, firefox, 1062000, 1681358165556, 8/8/2100], isExpired=false}]
-                linkedBlockingQueue.add(inEvents[0]);
+               EventPrinter.print(timeStamp, inEvents, removeEvents);
+                    for (Event event : inEvents) {
+                        eventCount.incrementAndGet();
+                    }
 
+                    if (eventCount.get() > 50) {
+                        siddhiAppRuntime.shutdown();
+                    }
             }
         });
-//        thread.start();
-        siddhiAppRuntime.start();
-
-        Thread.sleep(500000);
-//        thread.join();
-        siddhiAppRuntime.shutdown();
+        
+        Thread siddhiAppThread = new Thread(siddhiAppRuntime::start);
+        siddhiAppThread.start();
+        siddhiAppThread.join();
     }
     @Test
     public void SQLtoSiddhiQLCompilerWithDebeziumMySQLTest() throws InterruptedException {
@@ -237,7 +223,7 @@ public class TestCaseOfLiveSource implements Serializable {
                     eventCount.incrementAndGet();
                 }
 
-                if (eventCount.get() > 50){
+                if (eventCount.get() > 50) {
                     System.out.println("l");
                     siddhiAppRuntime.shutdown();
                 }
@@ -273,7 +259,7 @@ public class TestCaseOfLiveSource implements Serializable {
 
         List<SiddhiAppRuntime> siddhiAppRuntimes = new ArrayList<>();
 
-        for (int i = 0; i < 1000; i++){
+        for (int i = 0; i < 1000; i++) {
             SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
             siddhiAppRuntime.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
                 @Override
@@ -283,7 +269,7 @@ public class TestCaseOfLiveSource implements Serializable {
                         eventCount.incrementAndGet();
                     }
 
-                    if (eventCount.get() > 50){
+                    if (eventCount.get() > 50) {
                         siddhiAppRuntime.shutdown();
                     }
 
