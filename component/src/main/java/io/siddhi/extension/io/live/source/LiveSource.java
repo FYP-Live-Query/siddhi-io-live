@@ -209,7 +209,7 @@ public class LiveSource extends Source {
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
 
-        String uuid = UUID.randomUUID().toString();
+//        String uuid = UUID.randomUUID().toString();
 
         streamingClient = ZMQSubscriber.builder()
                 .topic(this.databaseServerName + "." + this.databaseName + "." + this.tableName)
