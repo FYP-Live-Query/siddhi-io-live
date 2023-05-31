@@ -1,7 +1,6 @@
 package io.siddhi.extension.io.live.source.Stream.ZmqClient;
 
 import io.siddhi.extension.io.live.source.Stream.IStreamingEngine;
-import io.siddhi.extension.io.live.source.Stream.ZmqClient.ActiveConsumerRecodHandling.ActiveMessageHandler;
 import lombok.Builder;
 import org.apache.tapestry5.json.JSONObject;
 import org.zeromq.SocketType;
@@ -17,19 +16,18 @@ public class ZMQSubscriber implements  IStreamingEngine<String>
 {
     private static Logger LOGGER = Logger.getLogger(ZMQSubscriber.class.toString());
     private Consumer<String> consumer;
-    private String databaseServer;
+    private String kafkaServerHostIp;
+    private int kafkaServerHostPort;
     private String topic;
-    private String port;
-    private String ZMQBrokerServer;
+    private int topicSubscriptionPort;
+    private String ZMQBrokerServerHostIp;
+    private int ZMQBrokerServerHostPort;
     @Builder.Default private final AtomicBoolean interrupted = new AtomicBoolean(false);
-    @Builder.Default private final ActiveMessageHandler<String> activeMessageHandler = new ActiveMessageHandler<>();;
     @Builder.Default private ZMQ.Socket subscriber = null;
     @Builder.Default private ZContext context = null;
 
     private void start()
     {
-//        activeMessageHandler.setConsumer(consumer);
-//        activeMessageHandler.start();
 
         while (!interrupted.get()) {
             String stringJsonMsg = subscriber.recvStr();
@@ -38,12 +36,11 @@ public class ZMQSubscriber implements  IStreamingEngine<String>
             String value = newValue.toString();
             System.out.println("Value: " + value);
             consumer.accept(value);
-//            activeMessageHandler.addMessage(value);
         }
 
         LOGGER.log(Level.INFO, String.format("Unsubscribed to ZMQ local broker topic [%s]", topic));
-        subscriber.disconnect("tcp://localhost:" + port);
-        LOGGER.log(Level.INFO, String.format("Disconnected from publisher at %s", "tcp://localhost:" + port));
+        subscriber.disconnect(String.format("tcp://%s:%d", ZMQBrokerServerHostIp, topicSubscriptionPort));
+        LOGGER.log(Level.INFO, String.format("Disconnected from publisher at %s", String.format("tcp://%s:%d", ZMQBrokerServerHostIp, topicSubscriptionPort)));
     }
 
     @Override
@@ -55,12 +52,12 @@ public class ZMQSubscriber implements  IStreamingEngine<String>
     @Override
     public void subscribe() {
         this.context = new ZContext();
-        LOGGER.log(Level.INFO, String.format("Connecting to ZMQ local broker [%s]", "tcp://localhost:5555"));
+        LOGGER.log(Level.INFO, String.format("Connecting to ZMQ local broker [tcp://%s:%d]", ZMQBrokerServerHostIp, ZMQBrokerServerHostPort));
 
         ZMQ.Socket socket = context.createSocket(SocketType.REQ);
-        socket.connect(ZMQBrokerServer);
-
-        JSONObject request = new JSONObject().put("topic", this.topic).put("kafkaDebeziumServer", this.databaseServer);
+        socket.connect(String.format("tcp://%s:%d", ZMQBrokerServerHostIp, ZMQBrokerServerHostPort));
+        JSONObject request = new JSONObject().put("topic", this.topic)
+                .put("kafka.server.host", this.kafkaServerHostIp + ":" + this.kafkaServerHostPort);
 
         LOGGER.log(Level.INFO, "Sending request " + request);
         socket.send(request.toString().getBytes(ZMQ.CHARSET), 0);
@@ -71,9 +68,9 @@ public class ZMQSubscriber implements  IStreamingEngine<String>
         JSONObject response = new JSONObject(new String(reply, ZMQ.CHARSET));
 
         this.subscriber = context.createSocket(SocketType.SUB);
-        this.port = response.getString("port");
+        this.topicSubscriptionPort = Integer.parseInt(response.getString("port"));
 
-        subscriber.connect("tcp://localhost:" + port);
+        subscriber.connect(String.format("tcp://%s:%d", ZMQBrokerServerHostIp, topicSubscriptionPort));
         subscriber.subscribe(topic.getBytes(ZMQ.CHARSET));
         LOGGER.log(Level.INFO, String.format("Subscribed to ZMQ local broker topic [%s]", topic));
     }

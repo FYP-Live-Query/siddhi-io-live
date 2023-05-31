@@ -1,8 +1,12 @@
 package io.siddhi.extension.io.live.source.Thread;
 
 import io.siddhi.extension.io.live.utils.Monitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public abstract class AbstractThread implements Runnable {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractThread.class);
     protected final Monitor pauseMonitor;
     protected volatile boolean isThreadRunning = true;
     protected volatile boolean isPaused = false;
