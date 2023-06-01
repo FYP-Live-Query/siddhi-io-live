@@ -5,6 +5,7 @@
     <parent>
         <groupId>io.siddhi</groupId>
         <artifactId>siddhi</artifactId>
+        <relativePath>${project.basedir}</relativePath>
         <version>5.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>

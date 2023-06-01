@@ -19,7 +19,6 @@ import SiddhiAppComposites.Annotation.Source.LiveSource;
 import SiddhiAppComposites.SiddhiAppGenerator;
 import SiddhiAppComposites.SiddhiApp;
 
-import org.apache.pulsar.shade.org.eclipse.util.thread.ExecutorThreadPool;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -27,7 +26,6 @@ import org.testng.annotations.Test;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
