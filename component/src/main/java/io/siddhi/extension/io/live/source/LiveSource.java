@@ -234,7 +234,8 @@ public class LiveSource extends Source {
                             .sourceEventListener(sourceEventListener)
                             .IStreamingEngine(streamingClient)
                             .build();
-        consumerThread.run();
+        Thread consumerThreadActive = new Thread(consumerThread);
+        consumerThreadActive.start();
     }
 
     /**
