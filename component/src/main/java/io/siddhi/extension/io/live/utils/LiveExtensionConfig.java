@@ -10,8 +10,8 @@ import java.util.Properties;
 
 public class LiveExtensionConfig {
     private final Logger logger = LoggerFactory.getLogger(LiveExtensionConfig.class);
-    private final String CONFIG_DIR = System.getProperty("user.dir") + "/src/main/resources";
-    private final String FILE_NAME = "LiveExtension.config";
+    private final String CONFIG_DIR = System.getProperty("user.dir");
+    private final String FILE_NAME = "configs/LiveExtension.config";
     private final Properties prop;
 
     private LiveExtensionConfig(final String configFileDir, final String configFileName) throws IOException {

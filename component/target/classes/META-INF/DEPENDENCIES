@@ -83,7 +83,7 @@ From: 'an unknown organization'
     License: Eclipse Public License v2.0  (https://www.eclipse.org/legal/epl-v20.html)
   - LZ4 and xxHash (https://github.com/lz4/lz4-java) org.lz4:lz4-java:jar:1.8.0
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
-  - sqltosiddhiql  org.mahesh:sqltosiddhiql:jar:0.9.10-SNAPSHOT
+  - sqltosiddhiql  org.mahesh:sqltosiddhiql:jar:0.10.10-SNAPSHOT
 
   - org.opentest4j:opentest4j (https://github.com/ota4j-team/opentest4j) org.opentest4j:opentest4j:jar:1.2.0
     License: The Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
