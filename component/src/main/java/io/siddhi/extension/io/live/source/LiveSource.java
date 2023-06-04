@@ -21,9 +21,12 @@ import io.siddhi.core.util.transport.OptionHolder;
 import io.siddhi.extension.io.live.source.Thread.AbstractThread;
 import io.siddhi.extension.io.live.utils.LiveExtensionConfig;
 import io.siddhi.extension.io.live.utils.LiveSourceConstants;
-import org.apache.log4j.Logger;
+import io.siddhi.extension.map.json.sourcemapper.JsonSourceMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -113,7 +116,7 @@ import java.util.UUID;
 )
 // for more information refer https://siddhi.io/en/v5.0/docs/query-guide/#source
 public class LiveSource extends Source {
-    private static final Logger logger = Logger.getLogger(LiveSource.class);
+    private static final Logger logger = LoggerFactory.getLogger(LiveSource.class);
     private String siddhiAppName;
     private String selectQuery;
     private String databaseServerHostIp;
@@ -208,15 +211,25 @@ public class LiveSource extends Source {
      */
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
+        String[] columnNames;
 
-//        String uuid = UUID.randomUUID().toString();
+        if ( sourceEventListener instanceof JsonSourceMapper){
+            JsonSourceMapper jsonSourceMapper = (JsonSourceMapper) sourceEventListener;
+            columnNames = jsonSourceMapper.getStreamDefinition().getAttributeNameArray();
+            logger.info("columns this stream interested : " + Arrays.toString(columnNames));
+        } else {
+            columnNames = null;
+            logger.warn("This extension does not use JsonSourceMapper. So unable to " +
+                    "extract column names and Column name filtering is disabled.");
+        }
 
         streamingClient = ZMQSubscriber.builder()
-                .topic(this.databaseServerName + "." + this.databaseName + "." + this.tableName)
+                .kafkaTopic(this.databaseServerName + "." + this.databaseName + "." + this.tableName)
                 .kafkaServerHostIp(kafkaServerHostIp)
                 .kafkaServerHostPort(kafkaServerHostPort)
                 .ZMQBrokerServerHostIp(ZMQBrokerServerHostIp)
                 .ZMQBrokerServerHostPort(ZMQBrokerServerHostPort)
+                .columnNamesInterested(columnNames)
                 .build();
 
 //        dbThread = DBThread.builder()
