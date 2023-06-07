@@ -150,7 +150,7 @@ public class TestCaseOfLiveSource implements Serializable {
         SiddhiManager siddhiManager = new SiddhiManager();
         siddhiManager.setPersistenceStore(persistenceStore);
 
-        String SQL = "SELECT table.a@string , stock.b@string FROM table JOIN stock ON table.id@string = stock.id@string";
+        String SQL = "SELECT order.orderId@string, item.itemType@string, item.unitPrice@float,order.totalRevenue@float, order.totalCost@float, order.totalProfit@float, order.eventTimestamp@long FROM item JOIN order ON item.itemType@string=order.itemType@string";
 
         SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
                 "SiddhiApp-dev-test",
@@ -186,6 +186,7 @@ public class TestCaseOfLiveSource implements Serializable {
         Thread siddhiAppThread = new Thread(siddhiAppRuntime::start);
         siddhiAppThread.start();
         siddhiAppThread.join();
+        Thread.sleep(50000);
     }
     @Test
     public void SQLtoSiddhiQLCompilerWithDebeziumMySQLTest() throws InterruptedException {
@@ -193,13 +194,12 @@ public class TestCaseOfLiveSource implements Serializable {
         SiddhiManager siddhiManager = new SiddhiManager();
         siddhiManager.setPersistenceStore(persistenceStore);
 
-        String SQL = "SELECT  ip@string, eventTimestamp@long FROM networkTraffic";
+        String SQL ="SELECT  ip@string, eventTimestamp@long FROM networkTraffic";
 
         SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
                 "SiddhiApp-dev-test",
                 SQL,
-                new LiveSource()
-                        .addSourceComposite(new KeyValue<>("table.name","networkTraffic")),
+                new LiveSource(),
                 new JsonMap()
                         .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))
                         .addMapComposite(new KeyValue<>("enclosing.element","$.properties")),
@@ -209,7 +209,20 @@ public class TestCaseOfLiveSource implements Serializable {
                 new QueryInfo().setQueryName("SQL-SiddhiQL-dev-test")
         );
 
-        String siddhiAppString = siddhiApp.getSiddhiAppStringRepresentation();
+//        String siddhiAppString = siddhiApp.getSiddhiAppStringRepresentation();
+        String siddhiAppString = "@app:name(\"SiddhiApp-dev-test\")\n" +
+                "@source(type = \"live\",sql.query = \"select order.orderId, item.itemType, item.unitPrice, order.totalRevenue, order.totalCost, order.totalProfit from item join order on item.itemType=order.itemType;\",table.name = \"item\",@map(type = \"json\",fail.on.missing.attribute = \"false\",enclosing.element = \"$.properties\",@attributes(totalRevenue = \"totalRevenue\",totalProfit = \"totalProfit\",itemType = \"itemType\",unitPrice = \"unitPrice\",totalCost = \"totalCost\",orderId = \"orderId\")))\n" +
+                "define stream itemInputStream(itemType string,unitPrice float);\n" +
+                "@source(type = \"live\",sql.query = \"select order.orderId, item.itemType, item.unitPrice, order.totalRevenue, order.totalCost, order.totalProfit from item join order on item.itemType=order.itemType;\",table.name = \"order\",@map(type = \"json\",fail.on.missing.attribute = \"false\",enclosing.element = \"$.properties\",@attributes(totalRevenue = \"totalRevenue\",totalProfit = \"totalProfit\",itemType = \"itemType\",unitPrice = \"unitPrice\",totalCost = \"totalCost\",orderId = \"orderId\")))\n" +
+                "define stream orderInputStream(orderId string,totalRevenue float,totalCost float,totalProfit float,itemType string);\n" +
+                "@sink(type = \"log\",priority = \"DEBUG\")\n" +
+                "define stream itemOutputStream(orderId string,itemType string,unitPrice float,totalRevenue float,totalCost float,totalProfit float);\n" +
+                "@info(name = \"SQL-SiddhiQL-dev-test\")\n" +
+                "from itemInputStream#window.length(3) as item\n" +
+                "join orderInputStream#window.length(3) as order\n" +
+                "on item.itemType == order.itemType\n" +
+                "select order.orderId, item.itemType, item.unitPrice, order.totalRevenue, order.totalCost, order.totalProfit\n" +
+                "insert into itemOutputStream;\n";
 
         SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
 
@@ -221,14 +234,14 @@ public class TestCaseOfLiveSource implements Serializable {
                     eventCount.incrementAndGet();
                 }
 
-                if (eventCount.get() > 50) {
-                    System.out.println("l");
+                if (eventCount.get() > 1000) {
                     siddhiAppRuntime.shutdown();
                 }
             }
         });
 
         siddhiAppRuntime.start();
+        Thread.sleep(Long.MAX_VALUE);
     }
 
     @Test()
@@ -242,8 +255,7 @@ public class TestCaseOfLiveSource implements Serializable {
         SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
                 "SiddhiApp-dev-test",
                 SQL,
-                new LiveSource()
-                        .addSourceComposite(new KeyValue<>("table.name","networkTraffic")),
+                new LiveSource(),
                 new JsonMap()
                         .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))
                         .addMapComposite(new KeyValue<>("enclosing.element","$.properties")),
@@ -257,7 +269,7 @@ public class TestCaseOfLiveSource implements Serializable {
 
         List<SiddhiAppRuntime> siddhiAppRuntimes = new ArrayList<>();
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 150; i++) {
             SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
             siddhiAppRuntime.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
                 @Override
@@ -283,5 +295,6 @@ public class TestCaseOfLiveSource implements Serializable {
             System.out.println("starting siddhi app runtime : " +  ++i);
             executorService.execute(siddhiAppRuntime::start);
         }
+        Thread.sleep(50000);
     }
 }
