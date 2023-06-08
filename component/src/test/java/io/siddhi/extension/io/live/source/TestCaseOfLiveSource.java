@@ -19,7 +19,6 @@ import SiddhiAppComposites.Annotation.Source.LiveSource;
 import SiddhiAppComposites.SiddhiAppGenerator;
 import SiddhiAppComposites.SiddhiApp;
 
-import org.apache.pulsar.shade.org.eclipse.util.thread.ExecutorThreadPool;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -27,7 +26,6 @@ import org.testng.annotations.Test;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -135,7 +133,7 @@ public class TestCaseOfLiveSource implements Serializable {
                     eventCount.incrementAndGet();
                 }
 
-                if (eventCount.get() > 50){
+                if (eventCount.get() > 50) {
                     siddhiAppRuntime.shutdown();
                 }
             }
@@ -146,6 +144,49 @@ public class TestCaseOfLiveSource implements Serializable {
         siddhiAppThread.join();
     }
 
+    @Test
+    public void JoinQueriesTest() throws InterruptedException {
+        PersistenceStore persistenceStore = new InMemoryPersistenceStore();
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.setPersistenceStore(persistenceStore);
+
+        String SQL = "SELECT table.a@string , stock.b@string FROM table JOIN stock ON table.id@string = stock.id@string";
+
+        SiddhiApp siddhiApp = SiddhiAppGenerator.generateSiddhiApp(
+                "SiddhiApp-dev-test",
+                SQL,
+                new LiveSource(),
+                new JsonMap()
+                        .addMapComposite(new KeyValue<>("fail.on.missing.attribute","false"))
+                        .addMapComposite(new KeyValue<>("enclosing.element","$.properties")),
+                new JsonMapAttributes(),
+                new LogSink()
+                        .addSourceComposite(new KeyValue<>("priority","DEBUG")),
+                new QueryInfo().setQueryName("SQL-SiddhiQL-dev-test")
+        );
+
+        String siddhiAppString = siddhiApp.getSiddhiAppStringRepresentation();
+        
+        SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
+
+        siddhiAppRuntime.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
+            @Override
+            public void receive(long timeStamp, Event[] inEvents, Event[] removeEvents) {
+               EventPrinter.print(timeStamp, inEvents, removeEvents);
+                    for (Event event : inEvents) {
+                        eventCount.incrementAndGet();
+                    }
+
+                    if (eventCount.get() > 50) {
+                        siddhiAppRuntime.shutdown();
+                    }
+            }
+        });
+        
+        Thread siddhiAppThread = new Thread(siddhiAppRuntime::start);
+        siddhiAppThread.start();
+        siddhiAppThread.join();
+    }
     @Test
     public void SQLtoSiddhiQLCompilerWithDebeziumMySQLTest() throws InterruptedException {
         PersistenceStore persistenceStore = new InMemoryPersistenceStore();
@@ -180,7 +221,7 @@ public class TestCaseOfLiveSource implements Serializable {
                     eventCount.incrementAndGet();
                 }
 
-                if (eventCount.get() > 50){
+                if (eventCount.get() > 50) {
                     System.out.println("l");
                     siddhiAppRuntime.shutdown();
                 }
@@ -216,7 +257,7 @@ public class TestCaseOfLiveSource implements Serializable {
 
         List<SiddhiAppRuntime> siddhiAppRuntimes = new ArrayList<>();
 
-        for (int i = 0; i < 1000; i++){
+        for (int i = 0; i < 1000; i++) {
             SiddhiAppRuntime siddhiAppRuntime = siddhiManager.createSiddhiAppRuntime(siddhiAppString);
             siddhiAppRuntime.addCallback("SQL-SiddhiQL-dev-test", new QueryCallback() {
                 @Override
@@ -226,7 +267,7 @@ public class TestCaseOfLiveSource implements Serializable {
                         eventCount.incrementAndGet();
                     }
 
-                    if (eventCount.get() > 50){
+                    if (eventCount.get() > 50) {
                         siddhiAppRuntime.shutdown();
                     }
 

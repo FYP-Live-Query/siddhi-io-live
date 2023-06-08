@@ -160,19 +160,19 @@ public class LiveSource extends Source {
             this.siddhiContext = siddhiAppContext.getSiddhiContext();
             this.sourceEventListener = sourceEventListener;
 
-            this.tableName = optionHolder.validateAndGetOption(LiveSourceConstants.TABLENAME).getValue();
-            this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQLQUERY).getValue();
+            this.tableName = optionHolder.validateAndGetOption(LiveSourceConstants.TABLE_NAME).getValue();
+            this.selectQuery = optionHolder.validateAndGetOption(LiveSourceConstants.SQL_QUERY).getValue();
 
-            this.databaseName = liveExtensionConfig.getProperty("database.name");
-            this.databaseServerHostIp = liveExtensionConfig.getProperty("database.server.host.ip");
-            this.databaseServerHostPort = Integer.parseInt(liveExtensionConfig.getProperty("database.server.host.port"));
-            this.databaseServerName = liveExtensionConfig.getProperty("database.server.name");
+            this.databaseName = liveExtensionConfig.getProperty(LiveSourceConstants.DATABASE_NAME);
+            this.databaseServerName = liveExtensionConfig.getProperty(LiveSourceConstants.DATABASE_SERVER_NAME);
+            this.databaseServerHostIp = liveExtensionConfig.getProperty(LiveSourceConstants.DATABASE_SERVER_HOST_IP);
+            this.databaseServerHostPort = Integer.parseInt(liveExtensionConfig.getProperty(LiveSourceConstants.DATABASE_SERVER_HOST_PORT));
 
-            this.kafkaServerHostIp = liveExtensionConfig.getProperty("kafka.server.host.ip");
-            this.kafkaServerHostPort = Integer.parseInt(liveExtensionConfig.getProperty("kafka.server.host.port"));
+            this.kafkaServerHostIp = liveExtensionConfig.getProperty(LiveSourceConstants.KAFKA_SERVER_HOST_IP);
+            this.kafkaServerHostPort = Integer.parseInt(liveExtensionConfig.getProperty(LiveSourceConstants.KAFKA_SERVER_HOST_PORT));
 
-            this.ZMQBrokerServerHostIp = liveExtensionConfig.getProperty("zmq.broker.server.host.ip");
-            this.ZMQBrokerServerHostPort = Integer.parseInt(liveExtensionConfig.getProperty("zmq.broker.server.host.port"));
+            this.ZMQBrokerServerHostIp = liveExtensionConfig.getProperty(LiveSourceConstants.ZMQ_BROKER_SERVER_HOST_IP);
+            this.ZMQBrokerServerHostPort = Integer.parseInt(liveExtensionConfig.getProperty(LiveSourceConstants.ZMQ_BROKER_SERVER_HOST_PORT));
 
         return null;
     }
@@ -209,7 +209,7 @@ public class LiveSource extends Source {
     @Override
     public void connect(ConnectionCallback connectionCallback , State state) throws ConnectionUnavailableException {
 
-        String uuid = UUID.randomUUID().toString();
+//        String uuid = UUID.randomUUID().toString();
 
         streamingClient = ZMQSubscriber.builder()
                 .topic(this.databaseServerName + "." + this.databaseName + "." + this.tableName)
@@ -234,7 +234,8 @@ public class LiveSource extends Source {
                             .sourceEventListener(sourceEventListener)
                             .IStreamingEngine(streamingClient)
                             .build();
-        consumerThread.run();
+        Thread consumerThreadActive = new Thread(consumerThread);
+        consumerThreadActive.start();
     }
 
     /**

@@ -1,0 +1,56 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1685602081612
+Build-Jdk: 11.0.11
+Built-By: Mahesh
+Bundle-Contributors: WSO2 Inc
+Bundle-Copyright: WSO2 Inc
+Bundle-Description: Siddhi, Stream Processing and Complex Event Processi
+ ng Engine
+Bundle-Developers: WSO2 Inc
+Bundle-DocURL: https://docs.wso2.com
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: siddhi-io-live
+Bundle-SymbolicName: siddhi-io-live
+Bundle-Vendor: WSO2 Inc
+Bundle-Version: 1.0.8.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+DynamicImport-Package: *
+Export-Package: io.siddhi.extension.io.live.sink;uses:="io.siddhi.annota
+ tion,io.siddhi.core.config,io.siddhi.core.exception,io.siddhi.core.stre
+ am,io.siddhi.core.stream.output.sink,io.siddhi.core.util.config,io.sidd
+ hi.core.util.snapshot.state,io.siddhi.core.util.transport,io.siddhi.que
+ ry.api.definition";version="1.0.8",io.siddhi.extension.io.live.source;u
+ ses:="io.siddhi.annotation,io.siddhi.annotation.util,io.siddhi.core.con
+ fig,io.siddhi.core.exception,io.siddhi.core.stream,io.siddhi.core.strea
+ m.input.source,io.siddhi.core.util.config,io.siddhi.core.util.snapshot.
+ state,io.siddhi.core.util.transport,io.siddhi.extension.io.live.source.
+ Thread";version="1.0.8",io.siddhi.extension.io.live.source.Stream;uses:
+ ="io.siddhi.core.stream.input.source,io.siddhi.extension.io.live.source
+ .Thread";version="1.0.8",io.siddhi.extension.io.live.source.Stream.ZmqC
+ lient;uses:="io.siddhi.extension.io.live.source.Stream,org.zeromq";vers
+ ion="1.0.8",io.siddhi.extension.io.live.source.Thread;uses:="io.siddhi.
+ extension.io.live.utils,org.slf4j";version="1.0.8",io.siddhi.extension.
+ io.live.utils;version="1.0.8"
+Import-Package: io.siddhi.annotation;resolution:=optional;version="[5.0,
+ 6)",io.siddhi.annotation.util;resolution:=optional;version="[5.0,6)",io
+ .siddhi.core.config;resolution:=optional;version="[5.0,6)",io.siddhi.co
+ re.exception;resolution:=optional;version="[5.0,6)",io.siddhi.core.stre
+ am;resolution:=optional;version="[5.0,6)",io.siddhi.core.stream.input.s
+ ource;resolution:=optional;version="[5.0,6)",io.siddhi.core.stream.outp
+ ut.sink;resolution:=optional;version="[5.0,6)",io.siddhi.core.util.conf
+ ig;resolution:=optional;version="[5.0,6)",io.siddhi.core.util.snapshot.
+ state;resolution:=optional;version="[5.0,6)",io.siddhi.core.util.transp
+ ort;resolution:=optional;version="[5.0,6)",io.siddhi.extension.io.live.
+ source.Stream;resolution:=optional,io.siddhi.extension.io.live.source.S
+ tream.ZmqClient;resolution:=optional,io.siddhi.extension.io.live.source
+ .Thread;resolution:=optional,io.siddhi.extension.io.live.utils;resoluti
+ on:=optional,io.siddhi.query.api.definition;resolution:=optional;versio
+ n="[5.0,6)",lombok;resolution:=optional,net.minidev.json;resolution:=op
+ tional;version="[2.2,3)",org.apache.log4j;resolution:=optional;version=
+ "[1.2,2)",org.apache.tapestry5.json;resolution:=optional;version="[5.4,
+ 6)",org.slf4j;resolution:=optional;version="[1.7,2)",org.zeromq;resolut
+ ion:=optional;version="[0.6,1)"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+SCM-Revision: c5f031f1450a7d1be2db911060eeaa1574a5b796
+Tool: Bnd-3.2.0.201605172007
